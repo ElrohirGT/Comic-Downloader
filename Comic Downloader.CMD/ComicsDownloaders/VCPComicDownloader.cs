@@ -30,7 +30,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             Task[] tasks = new Task[imageNodes.Count];
             for (int i = 0; i < imageNodes.Count; i++)
                 tasks[i] = DownloadImageAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), i.ToString(), gate, httpClient);
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }
