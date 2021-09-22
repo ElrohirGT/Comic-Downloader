@@ -10,10 +10,11 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     internal class EHentaiOrgComicDownloader : BaseComicDownloader
     {
+        private HtmlWeb _web = new HtmlWeb();
+
         public override async Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate)
         {
-            var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
+            HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
             string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText;
             string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText;
@@ -29,7 +30,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                 HtmlNodeCollection imgLinksNodes = document.DocumentNode.SelectNodes(@"//div[@id=""gdt""]//a");
                 for (int j = 0; j < imgLinksNodes.Count; j++)
                 {
-                    HtmlDocument imgDoc = await web.LoadFromWebAsync(imgLinksNodes[j].Attributes["href"].Value).ConfigureAwait(false);
+                    HtmlDocument imgDoc = await _web.LoadFromWebAsync(imgLinksNodes[j].Attributes["href"].Value).ConfigureAwait(false);
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri uri = new Uri(imgNode.Attributes["src"].Value);
 
@@ -46,7 +47,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                     HtmlNode nextPageNavigationNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()]/a");
                     string nextPageUrl = nextPageNavigationNode.Attributes["href"].Value;
 
-                    document = await web.LoadFromWebAsync(nextPageUrl).ConfigureAwait(false);
+                    document = await _web.LoadFromWebAsync(nextPageUrl).ConfigureAwait(false);
                 }
             }
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -54,8 +55,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 
         public override async Task<int> GetNumberOfImages(Uri url)
         {
-            var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
+            //FIXME web.LoadFromWebAsync throws a null exception when this url is used.
+            //https://e-hentai.org/g/913931/105605c620/
+            HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
             var tdAdjecentNode = document.DocumentNode.SelectSingleNode(@"//td[@class=""gdt1""][text()=""Length:""]");
 
