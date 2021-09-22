@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
-    internal class NHentaiComicDownloader : BaseComicDownloader
+    internal class EHentaiOrgComicDownloader : BaseComicDownloader
     {
         public override Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate)
         {

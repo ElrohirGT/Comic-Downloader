@@ -17,7 +17,7 @@ namespace Comic_Downloader.CMD
             },
             {
                 "nhentai.net",
-                new NHentaiComicDownloader()
+                new EHentaiOrgComicDownloader()
             }
         };
 
