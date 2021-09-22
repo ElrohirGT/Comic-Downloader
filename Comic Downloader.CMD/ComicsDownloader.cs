@@ -16,7 +16,7 @@ namespace Comic_Downloader.CMD
                 new VCPComicDownloader()
             },
             {
-                "nhentai.net",
+                "e-hentai.org",
                 new EHentaiOrgComicDownloader()
             }
         };
@@ -61,7 +61,7 @@ namespace Comic_Downloader.CMD
                 IComicDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
-                _totalImageCount += await downloader.GetNumberOfImages(url);
+                _totalImageCount += await downloader.GetNumberOfImages(url).ConfigureAwait(false);
             }
             List<Task> tasks = new List<Task>(urls.Length);
             for (int i = 0; i < urls.Length; i++)
@@ -72,7 +72,7 @@ namespace Comic_Downloader.CMD
                     continue;
                 tasks.Add(downloader.DownloadComic(url, outputPath, _httpClient, _gate));
             }
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -90,8 +90,8 @@ namespace Comic_Downloader.CMD
                 throw new NotSupportedException("The specified uri is not supported yet.");
 
             _currentDownloadedImages = 0;
-            _totalImageCount = await downloader.GetNumberOfImages(url);
-            await downloader.DownloadComic(url, outputPath, _httpClient, _gate);
+            _totalImageCount = await downloader.GetNumberOfImages(url).ConfigureAwait(false);
+            await downloader.DownloadComic(url, outputPath, _httpClient, _gate).ConfigureAwait(false);
         }
 
         private void OnImageDownloaded()

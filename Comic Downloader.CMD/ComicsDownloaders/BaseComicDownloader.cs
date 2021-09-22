@@ -8,13 +8,13 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     internal abstract class BaseComicDownloader : IComicDownloader
     {
-        public event Action ImageDownloaded;
+        public event Action ImageFinishedDownloading;
 
         public abstract Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate);
 
         public abstract Task<int> GetNumberOfImages(Uri url);
 
-        public async Task DownloadImageAsync(
+        protected async Task DownloadImageAsync(
             string directoryPath,
             Uri uri,
             object fileName,
@@ -45,7 +45,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             }
             finally
             {
-                ImageDownloaded?.Invoke();
+                ImageFinishedDownloading?.Invoke();
                 gate.Release();
             }
         }

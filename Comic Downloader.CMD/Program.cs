@@ -6,7 +6,7 @@ namespace Comic_Downloader.CMD
 {
     internal class Program
     {
-        private const int MAX_IMAGES_AT_A_TIME = 15;
+        private const int MAX_IMAGES_AT_A_TIME = 10;
         private static HttpClient _httpClient = new HttpClient();
 
         private static void Main()
@@ -39,7 +39,9 @@ namespace Comic_Downloader.CMD
             //    new Uri("https://vercomicsporno.com/cherry-road-7-original-vcp"),
             //    new Uri("https://vercomicsporno.com/hot-sauna-with-hinata-and-nereidas-mom-original-vcp"),
             //    new Uri("https://vercomicsporno.com/incognitymous-sultry-summer-2"),
-            //    new Uri("https://vercomicsporno.com/incognitymous-cataratas-lujuriosas-2")
+            //    new Uri("https://vercomicsporno.com/incognitymous-cataratas-lujuriosas-2"),
+            //    //new Uri("https://e-hentai.org/g/2017110/463359c6ce/"),
+            //    new Uri("https://e-hentai.org/g/2017115/cb506df526/")
             //};
             //string outputPath = @"D:\elroh\Documents\TestsDownloads";
 
