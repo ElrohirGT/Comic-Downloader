@@ -34,7 +34,7 @@ namespace Comic_Downloader.CMD
             _gate = new SemaphoreSlim(maxImages);
             _httpClient = httpClient;
             foreach (var downloader in _registeredDownloaders.Values)
-                downloader.ImageDownloaded += OnImageDownloaded;
+                downloader.ImageFinishedDownloading += OnImageDownloaded;
         }
 
         private IComicDownloader GetDownloader(Uri url)
