@@ -9,6 +9,11 @@ namespace Comic_Downloader.CMD
 {
     internal class ComicsDownloader : IComicsDownloader, IDisposable
     {
+        private int _currentDownloadedImages;
+        private SemaphoreSlim _gate;
+        private HttpClient _httpClient;//This should not be disposed of in this class
+        private object _lock = new();
+
         private Dictionary<string, IComicDownloader> _registeredDownloaders = new Dictionary<string, IComicDownloader>()
         {
             {
@@ -21,13 +26,7 @@ namespace Comic_Downloader.CMD
             }
         };
 
-        private SemaphoreSlim _gate;
-        private HttpClient _httpClient;//This should not be disposed of in this class
-        private object _lock = new();
-        private int _currentDownloadedImages;
         private int _totalImageCount;
-
-        public event Action<DownloadReportEventArgs> DownloadReport;
 
         public ComicsDownloader(HttpClient httpClient, int maxImages)
         {
@@ -37,12 +36,25 @@ namespace Comic_Downloader.CMD
                 downloader.ImageFinishedDownloading += OnImageDownloaded;
         }
 
-        private IComicDownloader GetDownloader(Uri url)
+        public event Action<DownloadReportEventArgs> DownloadReport;
+
+        /// <summary>
+        /// Downloads a comic from a url to the specified path,
+        /// a folder with the comic name will be automatically generated if it doesn't exists already.
+        /// This method is not thread-safe, so just call it one at a time.
+        /// </summary>
+        /// <param name="url">The uri where the images are located.</param>
+        /// <param name="outputPath">The path were the comic folder will be created.</param>
+        /// <returns>A task that completes once the comic has finished downloading.</returns>
+        public async Task DownloadComic(Uri url, string outputPath)
         {
-            var host = url.Host;
-            if (_registeredDownloaders.TryGetValue(host, out IComicDownloader downloader))
-                return downloader;
-            return null;
+            IComicDownloader downloader = GetDownloader(url);
+            if (downloader is null)
+                throw new NotSupportedException("The specified uri is not supported yet.");
+
+            _currentDownloadedImages = 0;
+            _totalImageCount = await downloader.GetNumberOfImages(url).ConfigureAwait(false);
+            await downloader.DownloadComic(url, outputPath, _httpClient, _gate).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -75,23 +87,12 @@ namespace Comic_Downloader.CMD
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Downloads a comic from a url to the specified path,
-        /// a folder with the comic name will be automatically generated if it doesn't exists already.
-        /// This method is not thread-safe, so just call it one at a time.
-        /// </summary>
-        /// <param name="url">The uri where the images are located.</param>
-        /// <param name="outputPath">The path were the comic folder will be created.</param>
-        /// <returns>A task that completes once the comic has finished downloading.</returns>
-        public async Task DownloadComic(Uri url, string outputPath)
+        private IComicDownloader GetDownloader(Uri url)
         {
-            IComicDownloader downloader = GetDownloader(url);
-            if (downloader is null)
-                throw new NotSupportedException("The specified uri is not supported yet.");
-
-            _currentDownloadedImages = 0;
-            _totalImageCount = await downloader.GetNumberOfImages(url).ConfigureAwait(false);
-            await downloader.DownloadComic(url, outputPath, _httpClient, _gate).ConfigureAwait(false);
+            var host = url.Host;
+            if (_registeredDownloaders.TryGetValue(host, out IComicDownloader downloader))
+                return downloader;
+            return null;
         }
 
         private void OnImageDownloaded()
