@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,14 +24,20 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         {
             await gate.WaitAsync().ConfigureAwait(false);
 
+            //Sanitize directory path
+            string regexSearch = new string(Path.GetInvalidPathChars());
+            Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+            directoryPath = r.Replace(directoryPath, "");
+
             var uriWithoutQuery = uri.GetLeftPart(UriPartial.Path);
             fileName ??= Path.GetFileName(uriWithoutQuery);
             var fileExtension = Path.GetExtension(uriWithoutQuery);
 
             var path = Path.Combine(directoryPath, $"{fileName}{fileExtension}");
-            Directory.CreateDirectory(directoryPath);
             try
             {
+                Directory.CreateDirectory(directoryPath);
+
                 // Downloading the file via streams because it has better performance
                 var imageStream = await httpClient.GetStreamAsync(uri).ConfigureAwait(false);
                 using (FileStream outputStream = new FileStream(path, FileMode.Create))
