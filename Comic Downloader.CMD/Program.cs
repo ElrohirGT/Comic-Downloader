@@ -17,6 +17,7 @@ namespace Comic_Downloader.CMD
 
         static void Main()
         {
+            //TODO: Major Refactoring needed, this is just the basic functionality done.
             Console.Clear();
             Console.Write("Link: ");
             string url = Console.ReadLine();
@@ -38,7 +39,6 @@ namespace Comic_Downloader.CMD
             for (int i = 0; i < _maxImageCount; i++)
                 tasks[i] = DownloadImageAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), i.ToString());
             Task.WaitAll(tasks);
-            source.Cancel();
         }
         /// <summary>
         /// Downloads an image asynchronously from the <paramref name="uri"/> and places it in the specified <paramref name="directoryPath"/> with the specified <paramref name="fileName"/>.
