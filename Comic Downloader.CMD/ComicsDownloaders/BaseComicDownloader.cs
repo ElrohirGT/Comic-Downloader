@@ -9,6 +9,14 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     internal abstract class BaseComicDownloader : IComicDownloader
     {
+        private readonly Regex INVALID_CHARS_REGEX;
+
+        protected BaseComicDownloader()
+        {
+            string regexSearch = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            INVALID_CHARS_REGEX = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+        }
+
         public event Action ImageFinishedDownloading;
 
         public abstract Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate);
@@ -25,15 +33,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             await gate.WaitAsync().ConfigureAwait(false);
 
             //Sanitize directory path
-            string regexSearch = new string(Path.GetInvalidPathChars());
-            Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
-            directoryPath = r.Replace(directoryPath, "");
+            string uriWithoutQuery, path;
+            SanitizePath(ref directoryPath, uri, ref fileName, out uriWithoutQuery, out path);
 
-            var uriWithoutQuery = uri.GetLeftPart(UriPartial.Path);
-            fileName ??= Path.GetFileName(uriWithoutQuery);
-            var fileExtension = Path.GetExtension(uriWithoutQuery);
-
-            var path = Path.Combine(directoryPath, $"{fileName}{fileExtension}");
             try
             {
                 Directory.CreateDirectory(directoryPath);
@@ -45,7 +47,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                 await imageStream.CopyToAsync(outputStream).ConfigureAwait(false);
                 await outputStream.FlushAsync().ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine($"An error ocurred trying to download {uriWithoutQuery}");
             }
@@ -54,6 +56,19 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                 ImageFinishedDownloading?.Invoke();
                 gate.Release();
             }
+        }
+
+        private void SanitizePath(ref string directoryPath, Uri uri, ref object fileName, out string uriWithoutQuery, out string path)
+        {
+            string directoryName = Path.GetFileName(directoryPath);
+            string parentDirectoryPath = Path.GetDirectoryName(directoryPath);
+            directoryPath = Path.Combine(parentDirectoryPath, INVALID_CHARS_REGEX.Replace(directoryName, ""));
+
+            uriWithoutQuery = uri.GetLeftPart(UriPartial.Path);
+            fileName ??= Path.GetFileName(uriWithoutQuery);
+            var fileExtension = Path.GetExtension(uriWithoutQuery);
+
+            path = Path.Combine(directoryPath, $"{fileName}{fileExtension}");
         }
     }
 }
