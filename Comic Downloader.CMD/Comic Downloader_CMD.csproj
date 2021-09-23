@@ -7,13 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ConsoleUtilitiesLite" Version="5.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="ConsoleUtilitiesLite">
-      <HintPath>..\..\ConsoleUtilities\ConsoleUtilities\bin\Release\net5.0\ConsoleUtilitiesLite.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
