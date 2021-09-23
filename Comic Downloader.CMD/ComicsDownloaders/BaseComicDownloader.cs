@@ -39,12 +39,11 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                 Directory.CreateDirectory(directoryPath);
 
                 // Downloading the file via streams because it has better performance
-                var imageStream = await httpClient.GetStreamAsync(uri).ConfigureAwait(false);
-                using (FileStream outputStream = new FileStream(path, FileMode.Create))
-                {
-                    await imageStream.CopyToAsync(outputStream).ConfigureAwait(false);
-                    await outputStream.FlushAsync().ConfigureAwait(false);
-                }
+                using var imageStream = await httpClient.GetStreamAsync(uri).ConfigureAwait(false);
+                using FileStream outputStream = new FileStream(path, FileMode.Create);
+
+                await imageStream.CopyToAsync(outputStream).ConfigureAwait(false);
+                await outputStream.FlushAsync().ConfigureAwait(false);
             }
             catch (Exception)
             {
