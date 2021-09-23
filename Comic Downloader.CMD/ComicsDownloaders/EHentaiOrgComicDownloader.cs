@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -12,7 +13,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
     {
         private HtmlWeb _web = new HtmlWeb();
 
-        public override async Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate)
+        protected override async Task Download_Comic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
         {
             HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
@@ -34,7 +35,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri uri = new Uri(imgNode.Attributes["src"].Value);
 
-                    tasks.Add(DownloadImageAsync(directoryPath, uri, imgCount + j, gate, httpClient));
+                    tasks.Add(DownloadImageAsync(directoryPath, uri, imgCount + j, gate, httpClient, errors));
 
                     bool isLastExecutionCycle = j + 1 == imgLinksNodes.Count;
                     if (isLastExecutionCycle)
@@ -53,7 +54,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        public override async Task<int> GetNumberOfImages(Uri url)
+        protected override async Task<int> Get_Number_Of_Images(Uri url)
         {
             //FIXME web.LoadFromWebAsync throws a null exception when this url is used.
             //https://e-hentai.org/g/913931/105605c620/

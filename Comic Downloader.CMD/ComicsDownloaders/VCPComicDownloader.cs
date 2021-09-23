@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -9,7 +10,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     internal class VCPComicDownloader : BaseComicDownloader
     {
-        public override async Task<int> GetNumberOfImages(Uri url)
+        protected override async Task<int> Get_Number_Of_Images(Uri url)
         {
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
@@ -18,7 +19,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             return imageNodes.Count;
         }
 
-        public override async Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate)
+        protected override async Task Download_Comic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
         {
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
@@ -29,7 +30,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             var imageNodes = document.DocumentNode.SelectNodes(@"//div[@class=""wp-content""]//img");
             Task[] tasks = new Task[imageNodes.Count];
             for (int i = 0; i < imageNodes.Count; i++)
-                tasks[i] = DownloadImageAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), i.ToString(), gate, httpClient);
+                tasks[i] = DownloadImageAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), i.ToString(), gate, httpClient, errors);
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }

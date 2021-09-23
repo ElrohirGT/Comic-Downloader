@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using static ConsoleUtilitiesLite.ConsoleUtilities;
 
 namespace Comic_Downloader.CMD
 {
@@ -8,6 +9,7 @@ namespace Comic_Downloader.CMD
     {
         private const int MAX_IMAGES_AT_A_TIME = 10;
         private static HttpClient _httpClient = new HttpClient();
+        private const string LOG_FORMAT = "Progress: {0}/{1}";
 
         private static void Main()
         {
@@ -41,7 +43,7 @@ namespace Comic_Downloader.CMD
             //    new Uri("https://vercomicsporno.com/incognitymous-cataratas-lujuriosas-2"),
             //    //new Uri("https://e-hentai.org/g/2017110/463359c6ce/"),
             //    new Uri("https://e-hentai.org/g/2017266/d916aea2de/"),
-            //    new Uri("https://e-hentai.org/g/2017115/cb506df526/")
+            //    new Uri("https://e-hentai.org/g/2017115/cb506df526/"),
             //};
 
             //List<Uri> uris = new List<Uri>()
@@ -64,8 +66,23 @@ namespace Comic_Downloader.CMD
             //string outputPath = @"D:\elroh\Documents\TestsDownloads";
 
             IComicsDownloader comicDownloader = new ComicsDownloader(_httpClient, MAX_IMAGES_AT_A_TIME);
-            comicDownloader.DownloadReport += (args) => Console.WriteLine($"Progress: {args.CurrentCount}/{args.TotalCount}");
-            comicDownloader.DownloadComics(uris.ToArray(), outputPath).Wait();
+            LogSuccessMessage("Starting Downloads...");
+            int previousLogLength = LogInfoMessage(string.Format(LOG_FORMAT, 0, 0));
+            comicDownloader.DownloadReport += (args) =>
+            {
+                ClearPreviousLog(previousLogLength);
+                previousLogLength = LogInfoMessage(LOG_FORMAT, args.CurrentCount, args.TotalCount);
+            };
+
+            string[] errors = comicDownloader.DownloadComics(uris.ToArray(), outputPath).Result;
+
+            if (errors.Length == 0)
+                Console.WriteLine("NO ERRORS");
+            else
+            {
+                foreach (var error in errors)
+                    LogErrorMessage(error);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Comic_Downloader.CMD.ComicsDownloaders;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -45,16 +46,19 @@ namespace Comic_Downloader.CMD
         /// </summary>
         /// <param name="url">The uri where the images are located.</param>
         /// <param name="outputPath">The path were the comic folder will be created.</param>
-        /// <returns>A task that completes once the comic has finished downloading.</returns>
-        public async Task DownloadComic(Uri url, string outputPath)
+        /// <returns>An array of errors. If there were no errors it's an empty array.</returns>
+        public async Task<string[]> DownloadComic(Uri url, string outputPath)
         {
             IComicDownloader downloader = GetDownloader(url);
             if (downloader is null)
                 throw new NotSupportedException("The specified uri is not supported yet.");
+            using BlockingCollection<string> errors = new BlockingCollection<string>();
 
             _currentDownloadedImages = 0;
-            _totalImageCount = await downloader.GetNumberOfImages(url).ConfigureAwait(false);
-            await downloader.DownloadComic(url, outputPath, _httpClient, _gate).ConfigureAwait(false);
+            _totalImageCount = await downloader.GetNumberOfImages(url, errors).ConfigureAwait(false);
+
+            await downloader.DownloadComic(url, outputPath, _httpClient, _gate, errors).ConfigureAwait(false);
+            return errors.ToArray();
         }
 
         /// <summary>
@@ -63,17 +67,19 @@ namespace Comic_Downloader.CMD
         /// </summary>
         /// <param name="urls">The uris where the comic images are located.</param>
         /// <param name="outputPath">The path where to download the comics.</param>
-        /// <returns>A task that finished once all comics have downloaded.</returns>
-        public async Task DownloadComics(Uri[] urls, string outputPath)
+        /// <returns>An array of errors. If there were no errors it's an empty array.</returns>
+        public async Task<string[]> DownloadComics(Uri[] urls, string outputPath)
         {
             _currentDownloadedImages = 0;
             _totalImageCount = 0;
+            using BlockingCollection<string> errors = new BlockingCollection<string>();
+
             foreach (var url in urls)
             {
                 IComicDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
-                _totalImageCount += await downloader.GetNumberOfImages(url).ConfigureAwait(false);
+                _totalImageCount += await downloader.GetNumberOfImages(url, errors).ConfigureAwait(false);
             }
             List<Task> tasks = new List<Task>(urls.Length);
             for (int i = 0; i < urls.Length; i++)
@@ -82,9 +88,10 @@ namespace Comic_Downloader.CMD
                 IComicDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
-                tasks.Add(downloader.DownloadComic(url, outputPath, _httpClient, _gate));
+                tasks.Add(downloader.DownloadComic(url, outputPath, _httpClient, _gate, errors));
             }
             await Task.WhenAll(tasks).ConfigureAwait(false);
+            return errors.ToArray();
         }
 
         private IComicDownloader GetDownloader(Uri url)

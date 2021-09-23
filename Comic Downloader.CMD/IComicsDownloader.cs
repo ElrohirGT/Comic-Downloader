@@ -7,8 +7,8 @@ namespace Comic_Downloader.CMD
     {
         event Action<DownloadReportEventArgs> DownloadReport;
 
-        Task DownloadComic(Uri url, string mainPath);
+        Task<string[]> DownloadComic(Uri url, string mainPath);
 
-        Task DownloadComics(Uri[] urls, string outputPath);
+        Task<string[]> DownloadComics(Uri[] urls, string outputPath);
     }
 }
