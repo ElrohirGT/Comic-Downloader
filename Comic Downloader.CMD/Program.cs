@@ -66,23 +66,31 @@ namespace Comic_Downloader.CMD
             //string outputPath = @"D:\elroh\Documents\TestsDownloads";
 
             IComicsDownloader comicDownloader = new ComicsDownloader(_httpClient, MAX_IMAGES_AT_A_TIME);
-            LogSuccessMessage("Starting Downloads...");
             SubDivision();
+            LogSuccessMessage("Starting Downloads...");
 
             int previousLogLength = LogInfoMessage(string.Format(LOG_FORMAT, 0, 0));
+            int maxCount = 1;
             comicDownloader.DownloadReport += (args) =>
             {
                 ClearPreviousLog(previousLogLength);
                 previousLogLength = LogInfoMessage(LOG_FORMAT, args.CurrentCount, args.TotalCount);
+                maxCount = args.TotalCount;
             };
 
+            DateTime before = DateTime.Now;
             string[] errors = comicDownloader.DownloadComics(uris.ToArray(), outputPath).Result;
+            DateTime after = DateTime.Now;
 
             SubDivision();
+            LogInfoMessage($"Time: {after - before} -- Success Rate: {(1 - errors.Length / Math.Max(maxCount, 1f)) * 100}%");
+            Console.ReadLine();
+
             if (errors.Length == 0)
-                Console.WriteLine("NO ERRORS");
+                LogSuccessMessage("NO ERRORS");
             else
             {
+                LogErrorMessage("ERRORS:");
                 foreach (var error in errors)
                     LogErrorMessage(error);
                 Console.ReadLine();
