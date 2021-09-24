@@ -36,7 +36,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// <summary>
         /// Override this method to implement the action of downloading the comic.
         /// The <paramref name="errors"/> collection is passed, and is intended to be used only to pass a reference to the method
-        /// <see cref="DownloadImageAsync(string, Uri, object, SemaphoreSlim, HttpClient, BlockingCollection{string})"/>
+        /// <see cref="DownloadFileAsync(string, Uri, SemaphoreSlim, HttpClient, BlockingCollection{string}, object)"/>
         /// </summary>
         /// <param name="uri">The uri where the comic is located.</param>
         /// <param name="basePath">The path where the comic will be downloaded.</param>
@@ -64,23 +64,42 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 
         protected abstract Task<int> Get_Number_Of_Images(Uri url);
 
-        protected async Task DownloadImageAsync(
-            string directoryPath,
+        protected string SanitizeComicPath(string comicPath)
+        {
+            string directoryName = Path.GetFileName(comicPath);
+            string parentDirectoryPath = Path.GetDirectoryName(comicPath);
+            return Path.Combine(parentDirectoryPath, INVALID_CHARS_REGEX.Replace(directoryName, ""));
+        }
+
+        /// <summary>
+        /// Downloads an image asyncronously on the specified <paramref name="comicPath"/>.
+        /// This path should be already sanitized, you can use the method <see cref="SanitizeComicPath(string)"/>.
+        /// You can also optionally rename the file that will be downloaded.
+        /// </summary>
+        /// <param name="comicPath">The path where the image will be downloaded. It must be sanitized.</param>
+        /// <param name="uri">The uri where the image is online.</param>
+        /// <param name="gate">The semaphore used to control how many downloads are active.</param>
+        /// <param name="httpClient">The HTTP Client to use.</param>
+        /// <param name="errors">The collection that stores the errors.</param>
+        /// <param name="fileName">The name the file will have when it's downloaded. If this is null, the default name from the uri will be used.</param>
+        /// <returns>A task that completes once the file is downloaded.</returns>
+        protected async Task DownloadFileAsync(
+            string comicPath,
             Uri uri,
-            object fileName,
             SemaphoreSlim gate,
             HttpClient httpClient,
-            BlockingCollection<string> errors)
+            BlockingCollection<string> errors,
+            object fileName = null)
         {
             await gate.WaitAsync().ConfigureAwait(false);
 
             //Sanitize directory path
-            string uriWithoutQuery, path;
-            SanitizePath(ref directoryPath, uri, ref fileName, out uriWithoutQuery, out path);
+            string uriWithoutQuery = uri.GetLeftPart(UriPartial.Path);
+            string path = ConstructImagePath(uriWithoutQuery, fileName, comicPath);
 
             try
             {
-                Directory.CreateDirectory(directoryPath);
+                Directory.CreateDirectory(comicPath);
 
                 // Downloading the file via streams because it has better performance
                 using var imageStream = await httpClient.GetStreamAsync(uri).ConfigureAwait(false);
@@ -100,17 +119,15 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             }
         }
 
-        private void SanitizePath(ref string directoryPath, Uri uri, ref object fileName, out string uriWithoutQuery, out string path)
+        private string ConstructImagePath(string uriWithoutQuery, object fileName, string comicPath)
         {
-            string directoryName = Path.GetFileName(directoryPath);
-            string parentDirectoryPath = Path.GetDirectoryName(directoryPath);
-            directoryPath = Path.Combine(parentDirectoryPath, INVALID_CHARS_REGEX.Replace(directoryName, ""));
-
-            uriWithoutQuery = uri.GetLeftPart(UriPartial.Path);
             fileName ??= Path.GetFileName(uriWithoutQuery);
-            var fileExtension = Path.GetExtension(uriWithoutQuery);
+            fileName = SanitizeFileName(fileName);
+            string fileExtension = Path.GetExtension(uriWithoutQuery);
 
-            path = Path.Combine(directoryPath, $"{fileName}{fileExtension}");
+            return Path.Combine(comicPath, $"{fileName}{fileExtension}");
         }
+
+        private object SanitizeFileName(object fileName) => INVALID_CHARS_REGEX.Replace(fileName.ToString(), "");
     }
 }

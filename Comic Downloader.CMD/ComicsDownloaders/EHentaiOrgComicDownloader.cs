@@ -20,7 +20,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText;
             string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText;
             string comicTitle = englishTitle ?? japaneseTitle;
-            string directoryPath = Path.Combine(mainPath, comicTitle);
+            string comicPath = SanitizeComicPath(Path.Combine(mainPath, comicTitle));
 
             HtmlNode tableNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()-1]");
             int numberOfPages = int.Parse(tableNode.InnerText);
@@ -35,7 +35,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri uri = new Uri(imgNode.Attributes["src"].Value);
 
-                    tasks.Add(DownloadImageAsync(directoryPath, uri, imgCount + j, gate, httpClient, errors));
+                    tasks.Add(DownloadFileAsync(comicPath, uri, gate, httpClient, errors, imgCount + j));
 
                     bool isLastExecutionCycle = j + 1 == imgLinksNodes.Count;
                     if (isLastExecutionCycle)

@@ -25,12 +25,12 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
             string title = document.DocumentNode.SelectSingleNode(@"//h1[@class=""titl""]").InnerText;
-            string comicPath = Path.Combine(mainPath, title);
+            string comicPath = SanitizeComicPath(Path.Combine(mainPath, title));
 
             var imageNodes = document.DocumentNode.SelectNodes(@"//div[@class=""wp-content""]//img");
             Task[] tasks = new Task[imageNodes.Count];
             for (int i = 0; i < imageNodes.Count; i++)
-                tasks[i] = DownloadImageAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), i.ToString(), gate, httpClient, errors);
+                tasks[i] = DownloadFileAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), gate, httpClient, errors, i.ToString());
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
