@@ -67,6 +67,8 @@ namespace Comic_Downloader.CMD
 
             IComicsDownloader comicDownloader = new ComicsDownloader(_httpClient, MAX_IMAGES_AT_A_TIME);
             LogSuccessMessage("Starting Downloads...");
+            SubDivision();
+
             int previousLogLength = LogInfoMessage(string.Format(LOG_FORMAT, 0, 0));
             comicDownloader.DownloadReport += (args) =>
             {
@@ -76,12 +78,14 @@ namespace Comic_Downloader.CMD
 
             string[] errors = comicDownloader.DownloadComics(uris.ToArray(), outputPath).Result;
 
+            SubDivision();
             if (errors.Length == 0)
                 Console.WriteLine("NO ERRORS");
             else
             {
                 foreach (var error in errors)
                     LogErrorMessage(error);
+                Console.ReadLine();
             }
         }
     }
