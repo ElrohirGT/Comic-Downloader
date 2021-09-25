@@ -31,8 +31,9 @@ namespace Comic_Downloader.CMD
                  maxImages: maxImages,
                  registeredDownloaders: new Dictionary<string, IComicDownloader>()
                  {
-                    { "vercomicsporno.com", new VCPComicDownloader() },
-                    { "e-hentai.org", new EHentaiOrgComicDownloader() }
+                     { "vercomicsporno.com", new VCPComicDownloader() },
+                     { "e-hentai.org", new EHentaiOrgComicDownloader() },
+                     {"vermangasporno.com", new VMPComicDownloader() }
                  })
         { }
 
