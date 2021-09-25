@@ -11,9 +11,18 @@ namespace Comic_Downloader.CMD
         private static HttpClient _httpClient = new HttpClient();
         private const string LOG_FORMAT = "Progress: {0}/{1}";
 
+        private static readonly string[] _title = new string[]
+        {
+            "█▀▄ █▀█ █░█░█ █▄░█ █░░ █▀█ ▄▀█ █▀▄ █▀▀ █▀█",
+            "█▄▀ █▄█ ▀▄▀▄▀ █░▀█ █▄▄ █▄█ █▀█ █▄▀ ██▄ █▀▄"
+        };
+
         private static void Main()
         {
             Console.Clear();
+            ShowTitle(_title);
+            ShowVersion(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
             Console.Write("Done Path: ");
             string outputPath = Console.ReadLine().Trim();
 

@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
-    internal interface IComicDownloader
+    public interface IComicDownloader
     {
         /// <summary>
         /// An event that fires every time an image finished downloading.
         /// </summary>
         event Action ImageFinishedDownloading;
+
         /// <summary>
         /// Downloads a comic from the specified uri. This method needs to be thread safe.
         /// </summary>
@@ -19,6 +20,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// <param name="gate">A gate to not download all images at the same time.</param>
         /// <returns>A task that completes once the comic has been downloaded</returns>
         Task DownloadComic(Uri uri, string mainPath, System.Net.Http.HttpClient httpClient, SemaphoreSlim gate, System.Collections.Concurrent.BlockingCollection<string> errors);
+
         /// <summary>
         /// Get's how many images the comic has. This method needs to be thread safe.
         /// </summary>

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
-    internal class VCPComicDownloader : BaseComicDownloader
+    public class VCPComicDownloader : BaseComicDownloader
     {
         protected override async Task<int> Get_Number_Of_Images(Uri url)
         {

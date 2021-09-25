@@ -4,10 +4,15 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Comic_Downloader.CMD</RootNamespace>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>D:\elroh\Documents\Developer\Console Apps\Comic Downloader\Comic Downloader.CMD\Comic Downloader_CMD.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConsoleUtilitiesLite" Version="5.0.0" />
+    <PackageReference Include="ConsoleUtilitiesLite" Version="5.0.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
   </ItemGroup>
 

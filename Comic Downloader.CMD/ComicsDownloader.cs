@@ -8,31 +8,48 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD
 {
-    internal class ComicsDownloader : IComicsDownloader, IDisposable
+    public class ComicsDownloader : IComicsDownloader, IDisposable
     {
         private int _currentDownloadedImages;
         private SemaphoreSlim _gate;
         private HttpClient _httpClient;//This should not be disposed of in this class
         private object _lock = new();
 
-        private Dictionary<string, IComicDownloader> _registeredDownloaders = new Dictionary<string, IComicDownloader>()
-        {
-            {
-                "vercomicsporno.com",
-                new VCPComicDownloader()
-            },
-            {
-                "e-hentai.org",
-                new EHentaiOrgComicDownloader()
-            }
-        };
+        private IDictionary<string, IComicDownloader> _registeredDownloaders;
 
         private int _totalImageCount;
 
+        /// <summary>
+        /// Creates an instance of <see cref="ComicsDownloader"/> with the default downlaoders.
+        /// The default downloaders are <see cref="VCPComicDownloader"/> and <see cref="EHentaiOrgComicDownloader"/>.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client to reuse.</param>
+        /// <param name="maxImages">The maximum number of images that will be downloaded simultaneously.</param>
         public ComicsDownloader(HttpClient httpClient, int maxImages)
+            : this(
+                 httpClient,
+                 maxImages: maxImages,
+                 registeredDownloaders: new Dictionary<string, IComicDownloader>()
+                 {
+                    { "vercomicsporno.com", new VCPComicDownloader() },
+                    { "e-hentai.org", new EHentaiOrgComicDownloader() }
+                 })
+        { }
+
+        /// <summary>
+        /// Creates an instance of a <see cref="ComicsDownloader"/> with custom downloaders,
+        /// the string is the host name and the value is the instance to reuse.
+        /// An example of a host name would be "e-hentai.org".
+        /// </summary>
+        /// <param name="httpClient">The HTTP client to reuse.</param>
+        /// <param name="registeredDownloaders">The custom downloaders to use.</param>
+        /// <param name="maxImages">The maximum number of images that will be downloaded simultaneously.</param>
+        public ComicsDownloader(HttpClient httpClient, IDictionary<string, IComicDownloader> registeredDownloaders, int maxImages = 1)
         {
             _gate = new SemaphoreSlim(maxImages);
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _registeredDownloaders = registeredDownloaders ?? throw new ArgumentNullException(nameof(registeredDownloaders));
+
             foreach (var downloader in _registeredDownloaders.Values)
                 downloader.ImageFinishedDownloading += OnImageDownloaded;
         }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD
 {
-    internal interface IComicsDownloader
+    public interface IComicsDownloader
     {
         event Action<DownloadReportEventArgs> DownloadReport;
 

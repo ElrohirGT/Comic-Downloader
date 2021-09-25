@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
-    internal class EHentaiOrgComicDownloader : BaseComicDownloader
+    public class EHentaiOrgComicDownloader : BaseComicDownloader
     {
         private HtmlWeb _web = new HtmlWeb();
 

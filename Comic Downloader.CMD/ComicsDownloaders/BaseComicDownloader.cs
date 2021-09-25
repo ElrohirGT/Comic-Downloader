@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
-    internal abstract class BaseComicDownloader : IComicDownloader
+    public abstract class BaseComicDownloader : IComicDownloader
     {
         private readonly Regex INVALID_CHARS_REGEX;
 
