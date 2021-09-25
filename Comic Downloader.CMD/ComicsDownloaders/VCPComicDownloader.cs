@@ -24,7 +24,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
-            string title = document.DocumentNode.SelectSingleNode(@"//h1[@class=""titl""]").InnerText;
+            string title = document.DocumentNode.SelectSingleNode(@"//h1[@class=""titl""]").InnerText.Trim();
             string comicPath = SanitizeComicPath(Path.Combine(mainPath, title));
 
             var imageNodes = document.DocumentNode.SelectNodes(@"//div[@class=""wp-content""]//img");

@@ -17,8 +17,8 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         {
             HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
-            string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText;
-            string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText;
+            string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText.Trim();
+            string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText.Trim();
             string comicTitle = englishTitle ?? japaneseTitle;
             string comicPath = SanitizeComicPath(Path.Combine(mainPath, comicTitle));
 

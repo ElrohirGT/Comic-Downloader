@@ -20,15 +20,15 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 
         public event Action ImageFinishedDownloading;
 
-        public Task DownloadComic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
+        public Task DownloadComic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
         {
             try
             {
-                return Download_Comic(url, mainPath, httpClient, gate, errors);
+                return Download_Comic(uri, mainPath, httpClient, gate, errors);
             }
             catch (Exception e)
             {
-                errors.Add($"Error downloading comic: {url.GetLeftPart(UriPartial.Path)}\n{e.Message}");
+                errors.Add($"Error downloading comic: {uri.GetLeftPart(UriPartial.Path)}\n{e.Message}");
                 return Task.CompletedTask;
             }
         }
@@ -49,15 +49,15 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// </returns>
         protected abstract Task Download_Comic(Uri uri, string basePath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors);
 
-        public Task<int> GetNumberOfImages(Uri url, BlockingCollection<string> errors)
+        public Task<int> GetNumberOfImages(Uri uri, BlockingCollection<string> errors)
         {
             try
             {
-                return Get_Number_Of_Images(url);
+                return Get_Number_Of_Images(uri);
             }
             catch (Exception e)
             {
-                errors.Add($"Error getting the number of images of: {url.GetLeftPart(UriPartial.Path)}\n{e.Message}");
+                errors.Add($"Error getting the number of images of: {uri.GetLeftPart(UriPartial.Path)}\n{e.Message}");
                 return Task.FromResult(0);
             }
         }
@@ -103,7 +103,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 
                 // Downloading the file via streams because it has better performance
                 using var imageStream = await httpClient.GetStreamAsync(uri).ConfigureAwait(false);
-                using FileStream outputStream = new FileStream(path, FileMode.Create);
+                using FileStream outputStream = File.Create(path);
 
                 await imageStream.CopyToAsync(outputStream).ConfigureAwait(false);
                 await outputStream.FlushAsync().ConfigureAwait(false);
