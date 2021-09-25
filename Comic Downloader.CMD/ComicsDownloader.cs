@@ -8,15 +8,16 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD
 {
+    /// <summary>
+    /// Basic Implementation of a <see cref="IComicsDownloader"/>.
+    /// </summary>
     public class ComicsDownloader : IComicsDownloader, IDisposable
     {
+        private readonly SemaphoreSlim _gate;
+        private readonly HttpClient _httpClient;//This should not be disposed of in this class
+        private readonly object _lock = new();
+        private readonly IDictionary<string, IComicDownloader> _registeredDownloaders;
         private int _currentDownloadedImages;
-        private SemaphoreSlim _gate;
-        private HttpClient _httpClient;//This should not be disposed of in this class
-        private object _lock = new();
-
-        private IDictionary<string, IComicDownloader> _registeredDownloaders;
-
         private int _totalImageCount;
 
         /// <summary>
@@ -55,6 +56,9 @@ namespace Comic_Downloader.CMD
                 downloader.ImageFinishedDownloading += OnImageDownloaded;
         }
 
+        /// <summary>
+        /// Event that fires every time an image is downloaded. Contains information about the current downloads.
+        /// </summary>
         public event Action<DownloadReportEventArgs> DownloadReport;
 
         /// <summary>
@@ -139,6 +143,10 @@ namespace Comic_Downloader.CMD
             Dispose(false);
         }
 
+        /// <summary>
+        /// Frees all managed resources from this instance of <see cref="ComicsDownloader"/>.
+        /// It also unsubscribes from all <see cref="IComicDownloader.ImageFinishedDownloading"/> events.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -149,6 +157,9 @@ namespace Comic_Downloader.CMD
         {
             if (disposing)
                 _gate.Dispose();
+
+            foreach (var downloader in _registeredDownloaders.Values)
+                downloader.ImageFinishedDownloading -= OnImageDownloaded;
         }
 
         #endregion Implementing IDisposable

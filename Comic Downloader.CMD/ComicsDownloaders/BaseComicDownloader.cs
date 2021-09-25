@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
+    /// <summary>
+    /// Base implementation of <see cref="IComicDownloader"/>.
+    /// Contains helper methods that help subclasses implement the methos of <see cref="IComicDownloader"/>.
+    /// </summary>
     public abstract class BaseComicDownloader : IComicDownloader
     {
         private readonly Regex INVALID_CHARS_REGEX;
@@ -18,6 +22,10 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             INVALID_CHARS_REGEX = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
         }
 
+        /// <summary>
+        /// An event that fires every time an image has finished downloading.
+        /// You shouldn't invoke this event directly, instead use <see cref="DownloadFileAsync(string, Uri, SemaphoreSlim, HttpClient, BlockingCollection{string}, object)"/>.
+        /// </summary>
         public event Action ImageFinishedDownloading;
 
         public Task DownloadComic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
@@ -36,7 +44,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// <summary>
         /// Override this method to implement the action of downloading the comic.
         /// The <paramref name="errors"/> collection is passed, and is intended to be used only to pass a reference to the method
-        /// <see cref="DownloadFileAsync(string, Uri, SemaphoreSlim, HttpClient, BlockingCollection{string}, object)"/>
+        /// <see cref="DownloadFileAsync(string, Uri, SemaphoreSlim, HttpClient, BlockingCollection{string}, object)"/>.
+        /// Any exception that is thrown in this method will be correctly handed by <see cref="BaseComicDownloader"/>,
+        /// so you don't need to try/catch this method.
         /// </summary>
         /// <param name="uri">The uri where the comic is located.</param>
         /// <param name="basePath">The path where the comic will be downloaded.</param>
@@ -62,18 +72,26 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             }
         }
 
+        /// <summary>
+        /// Override this method to implement the action of getting the number of images.
+        /// You don't need to try/catch this method, <see cref="BaseComicDownloader"/> already handles any exception this method could throw.
+        /// </summary>
+        /// <param name="url">The url where the comic resides.</param>
+        /// <returns>The number of images the comic has.</returns>
         protected abstract Task<int> Get_Number_Of_Images(Uri url);
 
-        protected string SanitizeComicPath(string comicPath)
-        {
-            string directoryName = Path.GetFileName(comicPath);
-            string parentDirectoryPath = Path.GetDirectoryName(comicPath);
-            return Path.Combine(parentDirectoryPath, INVALID_CHARS_REGEX.Replace(directoryName, ""));
-        }
+        /// <summary>
+        /// Creates a sanitizes a comic path.
+        /// </summary>
+        /// <param name="basePath">The path where the comic should be downloaded.</param>
+        /// <param name="comicTitle">The title of the comic.</param>
+        /// <returns>The sanitized comic path.</returns>
+        protected string ConstructComicPath(string basePath, string comicTitle)
+            => Path.Combine(basePath, INVALID_CHARS_REGEX.Replace(comicTitle.Trim(), ""));
 
         /// <summary>
         /// Downloads an image asyncronously on the specified <paramref name="comicPath"/>.
-        /// This path should be already sanitized, you can use the method <see cref="SanitizeComicPath(string)"/>.
+        /// This path should be already sanitized, you can use the method <see cref="ConstructComicPath(string, string)"/>.
         /// You can also optionally rename the file that will be downloaded.
         /// </summary>
         /// <param name="comicPath">The path where the image will be downloaded. It must be sanitized.</param>

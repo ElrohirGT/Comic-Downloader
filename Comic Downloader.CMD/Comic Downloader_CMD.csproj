@@ -11,6 +11,10 @@
     <DocumentationFile>D:\elroh\Documents\Developer\Console Apps\Comic Downloader\Comic Downloader.CMD\Comic Downloader_CMD.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Comic Downloader_CMD.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ConsoleUtilitiesLite" Version="5.0.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />

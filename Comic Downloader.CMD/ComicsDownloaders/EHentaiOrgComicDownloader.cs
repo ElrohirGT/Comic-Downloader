@@ -2,13 +2,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
+    /// <summary>
+    /// <see cref="IComicDownloader"/> implementation for the <see href="e-hentai.org"/> host.
+    /// </summary>
     public class EHentaiOrgComicDownloader : BaseComicDownloader
     {
         private HtmlWeb _web = new HtmlWeb();
@@ -17,10 +19,10 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         {
             HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
 
-            string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText.Trim();
-            string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText.Trim();
+            string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText;
+            string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText;
             string comicTitle = englishTitle ?? japaneseTitle;
-            string comicPath = SanitizeComicPath(Path.Combine(mainPath, comicTitle));
+            string comicPath = ConstructComicPath(mainPath, comicTitle);
 
             HtmlNode tableNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()-1]");
             int numberOfPages = int.Parse(tableNode.InnerText);
