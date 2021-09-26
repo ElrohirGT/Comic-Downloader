@@ -6,4 +6,4 @@ An application that facilitates downloading comics from different websites. The 
 
 Some comics from the e-hentai.org host can't be downloaded, because the website shows a warning message at the start instead of the images.
 
-## Usage
+Checkout the [Releases](https://github.com/ElrohirGT/Comic-Downloader/releases) page for downloads in your operating system.
