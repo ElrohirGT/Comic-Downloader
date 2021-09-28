@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using static ConsoleUtilitiesLite.ConsoleUtilities;
 
 namespace Comic_Downloader.CMD
@@ -25,6 +28,10 @@ namespace Comic_Downloader.CMD
 
             Console.Write("Done Path: ");
             string outputPath = Console.ReadLine().Trim();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                outputPath = Regex.Unescape(outputPath);
+            outputPath = Path.GetFullPath(outputPath);
+            LogWarningMessage($"Path that will be used: {outputPath}");
 
             List<Uri> uris = new List<Uri>();
             while (true)
@@ -32,14 +39,11 @@ namespace Comic_Downloader.CMD
                 Console.Write("Link (press only enter to start): ");
                 string url = Console.ReadLine().Trim();
                 if (string.IsNullOrEmpty(url))
-                {
-                    Console.WriteLine("Starting to download all comics");
                     break;
-                }
                 else if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
-                    Console.WriteLine("Please write a valid uri!");
+                    LogErrorMessage("Please write a valid uri!");
                 else if (uris.Contains(uri))
-                    Console.WriteLine("Please don't repeat uris");
+                    LogErrorMessage("Please don't repeat uris");
                 else
                     uris.Add(uri);
             }
