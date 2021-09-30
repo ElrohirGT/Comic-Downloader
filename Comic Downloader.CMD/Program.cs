@@ -61,7 +61,7 @@ namespace Comic_Downloader.CMD
             //};
             //string outputPath = @"D:\elroh\Documents\TestsDownloads";
 
-            IComicsDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
+            IDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
             SubDivision();
             LogSuccessMessage("Starting Downloads...");
 

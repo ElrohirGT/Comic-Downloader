@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 namespace Comic_Downloader.CMD
 {
     /// <summary>
-    /// Basic Implementation of a <see cref="IComicsDownloader"/>.
+    /// Basic Implementation of a <see cref="IDownloader"/>.
     /// </summary>
-    public class Downloader : IComicsDownloader, IDisposable
+    public class Downloader : IDownloader, IDisposable
     {
         private readonly SemaphoreSlim _gate;
         private readonly HttpClient _httpClient;//This should not be disposed of in this class
         private readonly object _lock = new();
-        private readonly IDictionary<string, IDownloader> _registeredDownloaders;
+        private readonly IDictionary<string, IResourceDownloader> _registeredDownloaders;
         private int _currentDownloadedImages;
         private int _totalImageCount;
 
@@ -28,12 +28,12 @@ namespace Comic_Downloader.CMD
         /// and <see cref="VMPComicDownloader"/>.
         /// </summary>
         /// <param name="httpClient">The HTTP client to reuse.</param>
-        /// <param name="maxImages">The maximum number of images that will be downloaded simultaneously.</param>
-        public Downloader(HttpClient httpClient, int maxImages)
+        /// <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
+        public Downloader(HttpClient httpClient, int maxItems)
             : this(
                  httpClient,
-                 maxImages: maxImages,
-                 registeredDownloaders: new Dictionary<string, IDownloader>()
+                 maxItems: maxItems,
+                 registeredDownloaders: new Dictionary<string, IResourceDownloader>()
                  {
                      { "vercomicsporno.com", new VCPComicDownloader() },
                      { "e-hentai.org", new EHentaiOrgComicDownloader() },
@@ -48,10 +48,10 @@ namespace Comic_Downloader.CMD
         /// </summary>
         /// <param name="httpClient">The HTTP client to reuse.</param>
         /// <param name="registeredDownloaders">The custom downloaders to use.</param>
-        /// <param name="maxImages">The maximum number of images that will be downloaded simultaneously.</param>
-        public Downloader(HttpClient httpClient, IDictionary<string, IDownloader> registeredDownloaders, int maxImages = 1)
+        /// <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
+        public Downloader(HttpClient httpClient, IDictionary<string, IResourceDownloader> registeredDownloaders, int maxItems = 1)
         {
-            _gate = new SemaphoreSlim(maxImages);
+            _gate = new SemaphoreSlim(maxItems);
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _registeredDownloaders = registeredDownloaders ?? throw new ArgumentNullException(nameof(registeredDownloaders));
 
@@ -74,7 +74,7 @@ namespace Comic_Downloader.CMD
         /// <returns>An array of errors. If there were no errors it's an empty array.</returns>
         public async Task<string[]> DownloadComic(Uri url, string outputPath)
         {
-            IDownloader downloader = GetDownloader(url);
+            IResourceDownloader downloader = GetDownloader(url);
             if (downloader is null)
                 throw new NotSupportedException("The specified uri is not supported yet.");
             using BlockingCollection<string> errors = new BlockingCollection<string>();
@@ -101,7 +101,7 @@ namespace Comic_Downloader.CMD
 
             foreach (var url in urls)
             {
-                IDownloader downloader = GetDownloader(url);
+                IResourceDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
                 _totalImageCount += await downloader.GetNumberOfItems(url, errors).ConfigureAwait(false);
@@ -110,7 +110,7 @@ namespace Comic_Downloader.CMD
             for (int i = 0; i < urls.Length; i++)
             {
                 Uri url = urls[i];
-                IDownloader downloader = GetDownloader(url);
+                IResourceDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
                 tasks.Add(downloader.Download(url, outputPath, _httpClient, _gate, errors));
@@ -119,10 +119,10 @@ namespace Comic_Downloader.CMD
             return errors.ToArray();
         }
 
-        private IDownloader GetDownloader(Uri url)
+        private IResourceDownloader GetDownloader(Uri url)
         {
             var host = url.Host;
-            if (_registeredDownloaders.TryGetValue(host, out IDownloader downloader))
+            if (_registeredDownloaders.TryGetValue(host, out IResourceDownloader downloader))
                 return downloader;
             return null;
         }
@@ -141,14 +141,14 @@ namespace Comic_Downloader.CMD
 
         #region Implementing IDisposable
 
-        ~Downloader()
+        ~IDownloader()
         {
             Dispose(false);
         }
 
         /// <summary>
         /// Frees all managed resources from this instance of <see cref="Downloader"/>.
-        /// It also unsubscribes from all <see cref="IDownloader.ItemFinishedDownloading"/> events.
+        /// It also unsubscribes from all <see cref="IResourceDownloader.ItemFinishedDownloading"/> events.
         /// </summary>
         public void Dispose()
         {

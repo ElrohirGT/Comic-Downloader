@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     /// <summary>
-    /// <see cref="IDownloader"/> implementation for the <see href="e-hentai.org"/> host.
+    /// <see cref="IResourceDownloader"/> implementation for the <see href="e-hentai.org"/> host.
     /// </summary>
     public class EHentaiOrgComicDownloader : BaseComicDownloader
     {

@@ -1,40 +1,33 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD
 {
     /// <summary>
-    /// Encapsulates all the methods required to download a resource from one online host.
+    /// Represents a Comic Downloader.
+    /// Encapsulates all the logic to download comics from multiple urls and saves the images to the specified path.
     /// </summary>
     public interface IDownloader
     {
         /// <summary>
-        /// An event that fires every time an item finished downloading.
+        /// Event that contains download information of the current process.
         /// </summary>
-        event Action ItemFinishedDownloading;
+        event Action<DownloadReportEventArgs> DownloadReport;
 
         /// <summary>
-        /// Downloads a resource from the specified uri.
-        /// The implementation has to be thread safe.
+        /// Downloads a comic from the specified <paramref name="url"/> to the specified <paramref name="mainPath"/>.
         /// </summary>
-        /// <param name="uri">The uri where the resource is.</param>
-        /// <param name="mainPath">The local path where the resource will be saved.</param>
-        /// <param name="httpClient">The client instance the application uses.</param>
-        /// <param name="gate">A gate to not download all items at the same time.</param>
-        /// <param name="errors">The collection that'll contain all the errors.</param>
-        /// <returns>A task that completes once the resource has been downloaded</returns>
-        Task Download(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors);
+        /// <param name="url">The url where the images are located.</param>
+        /// <param name="mainPath">The path where the comic folder will be created.</param>
+        /// <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
+        Task<string[]> DownloadComic(Uri url, string mainPath);
 
         /// <summary>
-        /// Get's how many items will be downloaded.
-        /// The implementation has to be thread safe.
+        /// Downloads all the comics from the specified <paramref name="urls"/> if it recognizes them.
         /// </summary>
-        /// <param name="uri">The uri where of the resource.</param>
-        /// <param name="errors">The collection that contains that'll contain all the errors.</param>
-        /// <returns>A task that'll return the number of items that will be downloaded.</returns>
-        Task<int> GetNumberOfItems(Uri uri, BlockingCollection<string> errors);
+        /// <param name="urls">The array of urls of the comics.</param>
+        /// <param name="outputPath">The path where the comics folders will be created.</param>
+        /// <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
+        Task<string[]> DownloadComics(Uri[] urls, string outputPath);
     }
 }
