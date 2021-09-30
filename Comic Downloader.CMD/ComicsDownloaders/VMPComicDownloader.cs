@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     /// <summary>
-    /// <see cref="IComicDownloader"/> implementation for the <see href="vermangasporno.com"/> host.
+    /// <see cref="IDownloader"/> implementation for the <see href="vermangasporno.com"/> host.
     /// </summary>
     public class VMPComicDownloader : BaseComicDownloader
     {

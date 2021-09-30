@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace Comic_Downloader.CMD.ComicsDownloaders
 {
     /// <summary>
-    /// Base implementation of <see cref="IComicDownloader"/>.
-    /// Contains helper methods that help subclasses implement the methos of <see cref="IComicDownloader"/>.
+    /// Comic implementation of <see cref="IDownloader"/>.
+    /// Contains helper methods that help subclasses implement the methos of <see cref="IDownloader"/>.
     /// </summary>
-    public abstract class BaseComicDownloader : IComicDownloader
+    public abstract class BaseComicDownloader : IDownloader
     {
         private readonly Regex INVALID_CHARS_REGEX;
 
@@ -26,9 +26,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// An event that fires every time an image has finished downloading.
         /// You shouldn't invoke this event directly, instead use <see cref="DownloadFileAsync(string, Uri, SemaphoreSlim, HttpClient, BlockingCollection{string}, object)"/>.
         /// </summary>
-        public event Action ImageFinishedDownloading;
+        public event Action ItemFinishedDownloading;
 
-        public Task DownloadComic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
+        public Task Download(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
         {
             try
             {
@@ -47,6 +47,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// <see cref="DownloadFileAsync(string, Uri, SemaphoreSlim, HttpClient, BlockingCollection{string}, object)"/>.
         /// Any exception that is thrown in this method will be correctly handed by <see cref="BaseComicDownloader"/>,
         /// so you don't need to try/catch this method.
+        /// A sub-folder of <paramref name="basePath"/> should be created with the name of the comic, and the images should be downloaded there.
         /// </summary>
         /// <param name="uri">The uri where the comic is located.</param>
         /// <param name="basePath">The path where the comic will be downloaded.</param>
@@ -59,7 +60,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// </returns>
         protected abstract Task Download_Comic(Uri uri, string basePath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors);
 
-        public Task<int> GetNumberOfImages(Uri uri, BlockingCollection<string> errors)
+        public Task<int> GetNumberOfItems(Uri uri, BlockingCollection<string> errors)
         {
             try
             {
@@ -132,7 +133,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             }
             finally
             {
-                ImageFinishedDownloading?.Invoke();
+                ItemFinishedDownloading?.Invoke();
                 gate.Release();
             }
         }
