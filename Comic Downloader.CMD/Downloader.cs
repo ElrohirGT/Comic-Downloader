@@ -74,10 +74,11 @@ namespace Comic_Downloader.CMD
         /// <returns>An array of errors. If there were no errors it's an empty array.</returns>
         public async Task<string[]> DownloadComic(Uri url, string outputPath)
         {
+            using BlockingCollection<string> errors = new BlockingCollection<string>();
+
             IResourceDownloader downloader = GetDownloader(url);
             if (downloader is null)
-                throw new NotSupportedException("The specified uri is not supported yet.");
-            using BlockingCollection<string> errors = new BlockingCollection<string>();
+                return errors.ToArray();
 
             _currentDownloadedImages = 0;
             _totalImageCount = await downloader.GetNumberOfItems(url, errors).ConfigureAwait(false);
@@ -93,23 +94,30 @@ namespace Comic_Downloader.CMD
         /// <param name="urls">The uris where the comic images are located.</param>
         /// <param name="outputPath">The path where to download the comics.</param>
         /// <returns>An array of errors. If there were no errors it's an empty array.</returns>
-        public async Task<string[]> DownloadComics(Uri[] urls, string outputPath)
+        public async Task<string[]> DownloadComics(IEnumerable<Uri> urls, string outputPath)
         {
+            using BlockingCollection<string> errors = new BlockingCollection<string>();
             _currentDownloadedImages = 0;
             _totalImageCount = 0;
-            using BlockingCollection<string> errors = new BlockingCollection<string>();
 
+            List<Task> tasks = new();
             foreach (var url in urls)
             {
                 IResourceDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
-                _totalImageCount += await downloader.GetNumberOfItems(url, errors).ConfigureAwait(false);
+                var t = Task.Run(async () =>
+                {
+                    int numberOfImages = await downloader.GetNumberOfItems(url, errors).ConfigureAwait(false);
+                    Interlocked.Add(ref _totalImageCount, numberOfImages);
+                });
+                tasks.Add(t);
             }
-            List<Task> tasks = new List<Task>(urls.Length);
-            for (int i = 0; i < urls.Length; i++)
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            tasks.Clear();
+            foreach (var url in urls)
             {
-                Uri url = urls[i];
                 IResourceDownloader downloader = GetDownloader(url);
                 if (downloader is null)
                     continue;
@@ -141,7 +149,7 @@ namespace Comic_Downloader.CMD
 
         #region Implementing IDisposable
 
-        ~IDownloader()
+        ~Downloader()
         {
             Dispose(false);
         }

@@ -4,78 +4,77 @@
         <name>Comic Downloader_CMD</name>
     </assembly>
     <members>
-        <member name="T:Comic_Downloader.CMD.ComicsDownloader">
+        <member name="T:Comic_Downloader.CMD.BaseResourceDownloader">
             <summary>
-            Basic Implementation of a <see cref="T:Comic_Downloader.CMD.IComicsDownloader"/>.
+            The base for all resource downloaders, contains handy methods for downloading files.
             </summary>
         </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloader.#ctor(System.Net.Http.HttpClient,System.Int32)">
+        <member name="E:Comic_Downloader.CMD.BaseResourceDownloader.ItemFinishedDownloading">
             <summary>
-            Creates an instance of <see cref="T:Comic_Downloader.CMD.ComicsDownloader"/> with the default downlaoders.
-            The default downloaders are <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.VCPComicDownloader"/> and <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.EHentaiOrgComicDownloader"/>.
-            </summary>
-            <param name="httpClient">The HTTP client to reuse.</param>
-            <param name="maxImages">The maximum number of images that will be downloaded simultaneously.</param>
-        </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloader.#ctor(System.Net.Http.HttpClient,System.Collections.Generic.IDictionary{System.String,Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader},System.Int32)">
-            <summary>
-            Creates an instance of a <see cref="T:Comic_Downloader.CMD.ComicsDownloader"/> with custom downloaders,
-            the string is the host name and the value is the instance to reuse.
-            An example of a host name would be "e-hentai.org".
-            </summary>
-            <param name="httpClient">The HTTP client to reuse.</param>
-            <param name="registeredDownloaders">The custom downloaders to use.</param>
-            <param name="maxImages">The maximum number of images that will be downloaded simultaneously.</param>
-        </member>
-        <member name="E:Comic_Downloader.CMD.ComicsDownloader.DownloadReport">
-            <summary>
-            Event that fires every time an image is downloaded. Contains information about the current downloads.
+            An event that fires every time an image has finished downloading.
+            You shouldn't invoke this event directly, instead use <see cref="M:Comic_Downloader.CMD.BaseResourceDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)"/>.
             </summary>
         </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloader.DownloadComic(System.Uri,System.String)">
+        <member name="M:Comic_Downloader.CMD.BaseResourceDownloader._Download(System.Uri,System.String,System.Net.Http.HttpClient,System.Threading.SemaphoreSlim,System.Collections.Concurrent.BlockingCollection{System.String})">
             <summary>
-            Downloads a comic from a url to the specified path,
-            a folder with the comic name will be automatically generated if it doesn't exists already.
-            This method is not thread-safe, so just call it one at a time.
+            Override this method to start the download of the resource.
+            All exceptions are automatically handled by <see cref="T:Comic_Downloader.CMD.BaseResourceDownloader"/> so you don't need to use try/catch.
             </summary>
-            <param name="url">The uri where the images are located.</param>
-            <param name="outputPath">The path were the comic folder will be created.</param>
-            <returns>An array of errors. If there were no errors it's an empty array.</returns>
+            <param name="uri">The uri where the resource is.</param>
+            <param name="mainPath">The path where the output should be saved.</param>
+            <param name="httpClient">The client to reuse</param>
+            <param name="gate">The gate that controls how many concurrent downloads will be started.</param>
+            <param name="errors">The collection that will have all the errors, should only be used to pass a reference <see cref="M:Comic_Downloader.CMD.BaseResourceDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)"/>.</param>
+            <returns>A task that completes once the resource was downloaded.</returns>
         </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloader.DownloadComics(System.Uri[],System.String)">
+        <member name="M:Comic_Downloader.CMD.BaseResourceDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)">
             <summary>
-            Downloads a bunch of comics from the urls,
-            this method is provided for allowing the download of multiple comics at a time.
+            Downloads a file asyncronously on the specified <paramref name="outputPath"/>.
+            This path should be already sanitized, you can use the method <see cref="M:Comic_Downloader.CMD.BaseResourceDownloader.ConstructFilePath(System.String,System.Object,System.String)"/>.
+            You can also optionally rename the file that will be downloaded.
+            <paramref name="outputPath"/> will be created if it doesn't exsits and
+            <paramref name="fileName"/> will be sanitized of invalid chars for the operating system.
             </summary>
-            <param name="urls">The uris where the comic images are located.</param>
-            <param name="outputPath">The path where to download the comics.</param>
-            <returns>An array of errors. If there were no errors it's an empty array.</returns>
-        </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloader.Dispose">
-            <summary>
-            Frees all managed resources from this instance of <see cref="T:Comic_Downloader.CMD.ComicsDownloader"/>.
-            It also unsubscribes from all <see cref="E:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader.ImageFinishedDownloading"/> events.
-            </summary>
+            <param name="outputPath">The path where the image will be downloaded. It must be sanitized.</param>
+            <param name="uri">The uri where the image is online.</param>
+            <param name="gate">The semaphore used to control how many downloads are active.</param>
+            <param name="httpClient">The HTTP Client to use.</param>
+            <param name="errors">The collection that stores the errors.</param>
+            <param name="fileName">The name the file will have when it's downloaded. If this is null, the default name from the uri will be used.</param>
+            <returns>A task that completes once the file is downloaded.</returns>
         </member>
         <member name="T:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader">
             <summary>
-            Base implementation of <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader"/>.
-            Contains helper methods that help subclasses implement the methos of <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader"/>.
+            Comic implementation of <see cref="T:Comic_Downloader.CMD.IResourceDownloader"/>.
+            Contains helper methods that help subclasses implement the methos of <see cref="T:Comic_Downloader.CMD.IResourceDownloader"/>.
             </summary>
         </member>
-        <member name="E:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.ImageFinishedDownloading">
+        <member name="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.Get_Number_Of_Items(System.Uri)">
             <summary>
-            An event that fires every time an image has finished downloading.
-            You shouldn't invoke this event directly, instead use <see cref="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)"/>.
+            Do not override this method in child classes.
+            Override <see cref="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.Get_Number_Of_Images(System.Uri)"/> instead.
             </summary>
+        </member>
+        <member name="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader._Download(System.Uri,System.String,System.Net.Http.HttpClient,System.Threading.SemaphoreSlim,System.Collections.Concurrent.BlockingCollection{System.String})">
+            <summary>
+            Do not override this method in child classes.
+            Override <see cref="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.Download_Comic(System.Uri,System.String,System.Net.Http.HttpClient,System.Threading.SemaphoreSlim,System.Collections.Concurrent.BlockingCollection{System.String})"/> instead.
+            </summary>
+            <param name="uri"></param>
+            <param name="mainPath"></param>
+            <param name="httpClient"></param>
+            <param name="gate"></param>
+            <param name="errors"></param>
+            <returns></returns>
         </member>
         <member name="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.Download_Comic(System.Uri,System.String,System.Net.Http.HttpClient,System.Threading.SemaphoreSlim,System.Collections.Concurrent.BlockingCollection{System.String})">
             <summary>
             Override this method to implement the action of downloading the comic.
             The <paramref name="errors"/> collection is passed, and is intended to be used only to pass a reference to the method
-            <see cref="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)"/>.
-            Any exception that is thrown in this method will be correctly handed by <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader"/>,
+            <see cref="M:Comic_Downloader.CMD.BaseResourceDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)"/>.
+            Any exception that is thrown in this method will be correctly handled by <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader"/>,
             so you don't need to try/catch this method.
+            A sub-folder of <paramref name="basePath"/> should be created with the name of the comic, and the images should be downloaded there.
             </summary>
             <param name="uri">The uri where the comic is located.</param>
             <param name="basePath">The path where the comic will be downloaded.</param>
@@ -97,68 +96,81 @@
         </member>
         <member name="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.ConstructComicPath(System.String,System.String)">
             <summary>
-            Creates a sanitizes a comic path.
+            Constructs and sanitizes a comic path.
             </summary>
             <param name="basePath">The path where the comic should be downloaded.</param>
             <param name="comicTitle">The title of the comic.</param>
             <returns>The sanitized comic path.</returns>
         </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.DownloadFileAsync(System.String,System.Uri,System.Threading.SemaphoreSlim,System.Net.Http.HttpClient,System.Collections.Concurrent.BlockingCollection{System.String},System.Object)">
-            <summary>
-            Downloads an image asyncronously on the specified <paramref name="comicPath"/>.
-            This path should be already sanitized, you can use the method <see cref="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.ConstructComicPath(System.String,System.String)"/>.
-            You can also optionally rename the file that will be downloaded.
-            </summary>
-            <param name="comicPath">The path where the image will be downloaded. It must be sanitized.</param>
-            <param name="uri">The uri where the image is online.</param>
-            <param name="gate">The semaphore used to control how many downloads are active.</param>
-            <param name="httpClient">The HTTP Client to use.</param>
-            <param name="errors">The collection that stores the errors.</param>
-            <param name="fileName">The name the file will have when it's downloaded. If this is null, the default name from the uri will be used.</param>
-            <returns>A task that completes once the file is downloaded.</returns>
-        </member>
         <member name="T:Comic_Downloader.CMD.ComicsDownloaders.EHentaiOrgComicDownloader">
             <summary>
-            <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader"/> implementation for the <see href="e-hentai.org"/> host.
+            <see cref="T:Comic_Downloader.CMD.IResourceDownloader"/> implementation for the <see href="e-hentai.org"/> host.
             </summary>
-        </member>
-        <member name="T:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader">
-            <summary>
-            Encapsulates all the methods required to download a comic from one online host.
-            </summary>
-        </member>
-        <member name="E:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader.ImageFinishedDownloading">
-            <summary>
-            An event that fires every time an image finished downloading.
-            </summary>
-        </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader.DownloadComic(System.Uri,System.String,System.Net.Http.HttpClient,System.Threading.SemaphoreSlim,System.Collections.Concurrent.BlockingCollection{System.String})">
-            <summary>
-            Downloads a comic from the specified uri. This method needs to be thread safe.
-            </summary>
-            <param name="uri">The uri where the comic is.</param>
-            <param name="mainPath">The local path where it will be saved.</param>
-            <param name="httpClient">The client instance the application uses.</param>
-            <param name="gate">A gate to not download all images at the same time.</param>
-            <param name="errors">The collection that contains that'll contain all the errors.</param>
-            <returns>A task that completes once the comic has been downloaded</returns>
-        </member>
-        <member name="M:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader.GetNumberOfImages(System.Uri,System.Collections.Concurrent.BlockingCollection{System.String})">
-            <summary>
-            Get's how many images the comic has. This method needs to be thread safe.
-            </summary>
-            <param name="uri">The uri where the comic is.</param>
-            <param name="errors">The collection that contains that'll contain all the errors.</param>
-            <returns>A task that gives the number of images the comic has.</returns>
         </member>
         <member name="T:Comic_Downloader.CMD.ComicsDownloaders.VCPComicDownloader">
             <summary>
-            <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader"/> implementation for the <see href="vercomicsporno.com"/> host.
+            <see cref="T:Comic_Downloader.CMD.IResourceDownloader"/> implementation for the <see href="vercomicsporno.com"/> host.
             </summary>
         </member>
         <member name="T:Comic_Downloader.CMD.ComicsDownloaders.VMPComicDownloader">
             <summary>
-            <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.IComicDownloader"/> implementation for the <see href="vermangasporno.com"/> host.
+            <see cref="T:Comic_Downloader.CMD.IResourceDownloader"/> implementation for the <see href="vermangasporno.com"/> host.
+            </summary>
+        </member>
+        <member name="T:Comic_Downloader.CMD.Downloader">
+            <summary>
+            Basic Implementation of a <see cref="T:Comic_Downloader.CMD.IDownloader"/>.
+            </summary>
+        </member>
+        <member name="M:Comic_Downloader.CMD.Downloader.#ctor(System.Net.Http.HttpClient,System.Int32)">
+            <summary>
+            Creates an instance of <see cref="T:Comic_Downloader.CMD.Downloader"/> with the default downlaoders.
+            The default downloaders are:
+            <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.VCPComicDownloader"/>,
+            <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.EHentaiOrgComicDownloader"/>
+            and <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.VMPComicDownloader"/>.
+            </summary>
+            <param name="httpClient">The HTTP client to reuse.</param>
+            <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
+        </member>
+        <member name="M:Comic_Downloader.CMD.Downloader.#ctor(System.Net.Http.HttpClient,System.Collections.Generic.IDictionary{System.String,Comic_Downloader.CMD.IResourceDownloader},System.Int32)">
+            <summary>
+            Creates an instance of a <see cref="T:Comic_Downloader.CMD.Downloader"/> with custom downloaders,
+            the string is the host name and the value is the instance to reuse.
+            An example of a host name would be "e-hentai.org".
+            </summary>
+            <param name="httpClient">The HTTP client to reuse.</param>
+            <param name="registeredDownloaders">The custom downloaders to use.</param>
+            <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
+        </member>
+        <member name="E:Comic_Downloader.CMD.Downloader.DownloadReport">
+            <summary>
+            Event that fires every time an image is downloaded. Contains information about the current downloads.
+            </summary>
+        </member>
+        <member name="M:Comic_Downloader.CMD.Downloader.DownloadComic(System.Uri,System.String)">
+            <summary>
+            Downloads a comic from a url to the specified path,
+            a folder with the comic name will be automatically generated if it doesn't exists already.
+            This method is not thread-safe, so just call it one at a time.
+            </summary>
+            <param name="url">The uri where the images are located.</param>
+            <param name="outputPath">The path were the comic folder will be created.</param>
+            <returns>An array of errors. If there were no errors it's an empty array.</returns>
+        </member>
+        <member name="M:Comic_Downloader.CMD.Downloader.DownloadComics(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
+            <summary>
+            Downloads a bunch of comics from the urls,
+            this method is provided for allowing the download of multiple comics at a time.
+            </summary>
+            <param name="urls">The uris where the comic images are located.</param>
+            <param name="outputPath">The path where to download the comics.</param>
+            <returns>An array of errors. If there were no errors it's an empty array.</returns>
+        </member>
+        <member name="M:Comic_Downloader.CMD.Downloader.Dispose">
+            <summary>
+            Frees all managed resources from this instance of <see cref="T:Comic_Downloader.CMD.Downloader"/>.
+            It also unsubscribes from all <see cref="E:Comic_Downloader.CMD.IResourceDownloader.ItemFinishedDownloading"/> events.
             </summary>
         </member>
         <member name="P:Comic_Downloader.CMD.DownloadReportEventArgs.CurrentCount">
@@ -171,18 +183,18 @@
             The total count of images that will be downloaded.
             </summary>
         </member>
-        <member name="T:Comic_Downloader.CMD.IComicsDownloader">
+        <member name="T:Comic_Downloader.CMD.IDownloader">
             <summary>
             Represents a Comic Downloader.
             Encapsulates all the logic to download comics from multiple urls and saves the images to the specified path.
             </summary>
         </member>
-        <member name="E:Comic_Downloader.CMD.IComicsDownloader.DownloadReport">
+        <member name="E:Comic_Downloader.CMD.IDownloader.DownloadReport">
             <summary>
             Event that contains download information of the current process.
             </summary>
         </member>
-        <member name="M:Comic_Downloader.CMD.IComicsDownloader.DownloadComic(System.Uri,System.String)">
+        <member name="M:Comic_Downloader.CMD.IDownloader.DownloadComic(System.Uri,System.String)">
             <summary>
             Downloads a comic from the specified <paramref name="url"/> to the specified <paramref name="mainPath"/>.
             </summary>
@@ -190,13 +202,44 @@
             <param name="mainPath">The path where the comic folder will be created.</param>
             <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
         </member>
-        <member name="M:Comic_Downloader.CMD.IComicsDownloader.DownloadComics(System.Uri[],System.String)">
+        <member name="M:Comic_Downloader.CMD.IDownloader.DownloadComics(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
             <summary>
             Downloads all the comics from the specified <paramref name="urls"/> if it recognizes them.
             </summary>
             <param name="urls">The array of urls of the comics.</param>
             <param name="outputPath">The path where the comics folders will be created.</param>
             <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
+        </member>
+        <member name="T:Comic_Downloader.CMD.IResourceDownloader">
+            <summary>
+            Encapsulates all the methods required to download a resource from one online host.
+            </summary>
+        </member>
+        <member name="E:Comic_Downloader.CMD.IResourceDownloader.ItemFinishedDownloading">
+            <summary>
+            An event that fires every time an item finished downloading.
+            </summary>
+        </member>
+        <member name="M:Comic_Downloader.CMD.IResourceDownloader.Download(System.Uri,System.String,System.Net.Http.HttpClient,System.Threading.SemaphoreSlim,System.Collections.Concurrent.BlockingCollection{System.String})">
+            <summary>
+            Downloads a resource from the specified uri.
+            The implementation has to be thread safe.
+            </summary>
+            <param name="uri">The uri where the resource is.</param>
+            <param name="mainPath">The local path where the resource will be saved.</param>
+            <param name="httpClient">The client instance the application uses.</param>
+            <param name="gate">A gate to not download all items at the same time.</param>
+            <param name="errors">The collection that'll contain all the errors.</param>
+            <returns>A task that completes once the resource has been downloaded</returns>
+        </member>
+        <member name="M:Comic_Downloader.CMD.IResourceDownloader.GetNumberOfItems(System.Uri,System.Collections.Concurrent.BlockingCollection{System.String})">
+            <summary>
+            Get's how many items will be downloaded.
+            The implementation has to be thread safe.
+            </summary>
+            <param name="uri">The uri where of the resource.</param>
+            <param name="errors">The collection that contains that'll contain all the errors.</param>
+            <returns>A task that'll return the number of items that will be downloaded.</returns>
         </member>
     </members>
 </doc>

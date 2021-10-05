@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD
@@ -28,6 +29,6 @@ namespace Comic_Downloader.CMD
         /// <param name="urls">The array of urls of the comics.</param>
         /// <param name="outputPath">The path where the comics folders will be created.</param>
         /// <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
-        Task<string[]> DownloadComics(Uri[] urls, string outputPath);
+        Task<string[]> DownloadComics(IEnumerable<Uri> urls, string outputPath);
     }
 }
