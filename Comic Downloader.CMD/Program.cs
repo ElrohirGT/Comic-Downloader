@@ -32,20 +32,47 @@ namespace Comic_Downloader.CMD
                 outputPath = Regex.Unescape(outputPath);
             outputPath = Path.GetFullPath(outputPath);
             LogWarningMessage($"Path that will be used: {outputPath}");
+            SubDivision();
+            LogInfoMessage("Press enter twice to start downloading. Enter d to delete previous link.");
 
-            List<Uri> uris = new List<Uri>();
+            Stack<Uri> uris = new();
+            bool previousWasError = false;
             while (true)
             {
-                Console.Write("Link (press only enter to start): ");
+                Console.Write("Link: ");
                 string url = Console.ReadLine().Trim();
                 if (string.IsNullOrEmpty(url))
                     break;
+                else if (url == "d" && uris.TryPop(out _))
+                {
+                    int lines = previousWasError ? 3 : 2;
+                    ClearPreviousLog(lines * Console.BufferWidth);
+                    previousWasError = false;
+                }
                 else if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
+                {
+                    int lines = previousWasError ? 2 : 1;
+                    ClearPreviousLog(lines * Console.BufferWidth);
                     LogErrorMessage("Please write a valid uri!");
+                    previousWasError = true;
+                }
                 else if (uris.Contains(uri))
+                {
+                    int lines = previousWasError ? 2 : 1;
+                    ClearPreviousLog(lines * Console.BufferWidth);
                     LogErrorMessage("Please don't repeat uris");
+                    previousWasError = true;
+                }
                 else
-                    uris.Add(uri);
+                {
+                    uris.Push(uri);
+                    if (previousWasError)
+                    {
+                        ClearPreviousLog(2 * Console.BufferWidth);
+                        Console.WriteLine($"Link: {uri}");
+                    }
+                    previousWasError = false;
+                }
             }
 
             //List<Uri> uris = new List<Uri>()
@@ -75,7 +102,7 @@ namespace Comic_Downloader.CMD
             };
 
             DateTime before = DateTime.Now;
-            string[] errors = comicDownloader.DownloadComics(uris.ToArray(), outputPath).Result;
+            string[] errors = comicDownloader.DownloadComics(uris, outputPath).Result;
             DateTime after = DateTime.Now;
 
             SubDivision();
