@@ -37,7 +37,8 @@ namespace Comic_Downloader.CMD
                  {
                      { "vercomicsporno.com", new VCPComicDownloader() },
                      { "e-hentai.org", new EHentaiOrgComicDownloader() },
-                     {"vermangasporno.com", new VMPComicDownloader() }
+                     { "vermangasporno.com", new VMPComicDownloader() },
+                     { "nhentai.net", new NHentaiComicDownloader() }
                  })
         { }
 

@@ -91,7 +91,7 @@
             Override this method to implement the action of getting the number of images.
             You don't need to try/catch this method, <see cref="T:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader"/> already handles any exception this method could throw.
             </summary>
-            <param name="url">The url where the comic resides.</param>
+            <param name="uri">The uri where the comic resides.</param>
             <returns>The number of images the comic has.</returns>
         </member>
         <member name="M:Comic_Downloader.CMD.ComicsDownloaders.BaseComicDownloader.ConstructComicPath(System.String,System.String)">
