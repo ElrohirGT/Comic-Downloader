@@ -35,9 +35,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                 {
                     HtmlDocument imgDoc = await _web.LoadFromWebAsync(imgLinksNodes[j].Attributes["href"].Value).ConfigureAwait(false);
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
-                    Uri uri = new Uri(imgNode.Attributes["src"].Value);
+                    Uri imageUri = new Uri(imgNode.Attributes["src"].Value);
 
-                    tasks.Add(DownloadFileAsync(comicPath, uri, gate, httpClient, errors, imgCount + j));
+                    tasks.Add(DownloadFileAsync(comicPath, imageUri, gate, httpClient, errors, imgCount + j));
 
                     bool isLastExecutionCycle = j + 1 == imgLinksNodes.Count;
                     if (isLastExecutionCycle)
