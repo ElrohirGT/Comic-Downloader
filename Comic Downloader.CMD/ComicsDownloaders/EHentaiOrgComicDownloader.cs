@@ -11,13 +11,13 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
     /// <summary>
     /// <see cref="IResourceDownloader"/> implementation for the <see href="e-hentai.org"/> host.
     /// </summary>
-    public class EHentaiOrgComicDownloader : BaseComicDownloader
+    public sealed class EHentaiOrgComicDownloader : BaseComicDownloader
     {
         private HtmlWeb _web = new HtmlWeb();
 
-        protected override async Task Download_Comic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
+        protected override async Task Download_Comic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
         {
-            HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
+            HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
             string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText;
             string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText;
@@ -56,11 +56,11 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        protected override async Task<int> Get_Number_Of_Images(Uri url)
+        protected override async Task<int> Get_Number_Of_Images(Uri uri)
         {
             //FIXME web.LoadFromWebAsync throws a null exception when this url is used.
             //https://e-hentai.org/g/913931/105605c620/
-            HtmlDocument document = await _web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
+            HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
             var tdAdjecentNode = document.DocumentNode.SelectSingleNode(@"//td[@class=""gdt1""][text()=""Length:""]");
 

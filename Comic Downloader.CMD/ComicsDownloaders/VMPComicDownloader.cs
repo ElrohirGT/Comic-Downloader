@@ -11,7 +11,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
     /// <summary>
     /// <see cref="IResourceDownloader"/> implementation for the <see href="vermangasporno.com"/> host.
     /// </summary>
-    public class VMPComicDownloader : BaseComicDownloader
+    public sealed class VMPComicDownloader : BaseComicDownloader
     {
         private HtmlWeb _web = new HtmlWeb();
 
@@ -34,9 +34,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             await Task.WhenAll(tasks);
         }
 
-        protected override async Task<int> Get_Number_Of_Images(Uri url)
+        protected override async Task<int> Get_Number_Of_Images(Uri uri)
         {
-            HtmlDocument doc = await _web.LoadFromWebAsync(url.AbsoluteUri);
+            HtmlDocument doc = await _web.LoadFromWebAsync(uri.AbsoluteUri);
             return GetTheImages(doc).Length;
         }
 

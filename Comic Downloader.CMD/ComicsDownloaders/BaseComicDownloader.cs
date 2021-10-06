@@ -66,9 +66,9 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
         /// Override this method to implement the action of getting the number of images.
         /// You don't need to try/catch this method, <see cref="BaseComicDownloader"/> already handles any exception this method could throw.
         /// </summary>
-        /// <param name="url">The url where the comic resides.</param>
+        /// <param name="uri">The uri where the comic resides.</param>
         /// <returns>The number of images the comic has.</returns>
-        protected abstract Task<int> Get_Number_Of_Images(Uri url);
+        protected abstract Task<int> Get_Number_Of_Images(Uri uri);
 
         /// <summary>
         /// Constructs and sanitizes a comic path.

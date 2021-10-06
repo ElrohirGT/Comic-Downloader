@@ -10,21 +10,21 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
     /// <summary>
     /// <see cref="IResourceDownloader"/> implementation for the <see href="vercomicsporno.com"/> host.
     /// </summary>
-    public class VCPComicDownloader : BaseComicDownloader
+    public sealed class VCPComicDownloader : BaseComicDownloader
     {
-        protected override async Task<int> Get_Number_Of_Images(Uri url)
+        protected override async Task<int> Get_Number_Of_Images(Uri uri)
         {
             var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
+            HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
             var imageNodes = document.DocumentNode.SelectNodes(@"//div[@class=""wp-content""]//img");
             return imageNodes.Count;
         }
 
-        protected override async Task Download_Comic(Uri url, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
+        protected override async Task Download_Comic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
         {
             var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync(url.AbsoluteUri).ConfigureAwait(false);
+            HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
             string title = document.DocumentNode.SelectSingleNode(@"//h1[@class=""titl""]").InnerText;
             string comicPath = ConstructComicPath(mainPath, title);
