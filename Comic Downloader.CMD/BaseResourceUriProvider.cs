@@ -25,7 +25,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
 
         public abstract Task<int> GetNumberOfItems(Uri uri);
 
-        public abstract Task<IEnumerable<DownloadableFile>> GetUris(Uri uri, string mainPath);
+        public abstract IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
 
         /// <summary>
         /// Please initialize an instance of this class before calling this method.

@@ -22,7 +22,7 @@ namespace Comic_Downloader.CMD
         /// The implementation needs to be thread safe.
         /// </summary>
         /// <param name="uri">The uri where the resource lives.</param>
-        /// <returns>A task that'll return all the necessary information to download the files.</returns>
-        Task<IEnumerable<DownloadableFile>> GetUris(Uri uri, string mainPath);
+        /// <returns>An async enumerator that'll return all the uris.</returns>
+        IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
     }
 }

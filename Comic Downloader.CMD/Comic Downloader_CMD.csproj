@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Comic_Downloader.CMD</RootNamespace>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <RuntimeIdentifiers>win10-x64;osx-x64;win-x86</RuntimeIdentifiers>
   </PropertyGroup>
 

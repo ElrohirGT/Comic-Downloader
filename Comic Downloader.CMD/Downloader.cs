@@ -6,7 +6,6 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 namespace Comic_Downloader.CMD
 {
@@ -76,45 +75,37 @@ namespace Comic_Downloader.CMD
             _currentDownloadedImages = 0;
             _totalImageCount = 0;
 
-            ExecutionDataflowBlockOptions dataflowBlockOptions = new ExecutionDataflowBlockOptions() { MaxDegreeOfParallelism = _maxItems };
-            var uriToImagesUrisBlock = new TransformManyBlock<Uri, DownloadableFile>(
-                async (uri) =>
-                {
-                    try
-                    {
-                        return await GetImageUris(uri, outputPath).ConfigureAwait(false);
-                    }
-                    catch (Exception e)
-                    {
-                        errors.Add($"An error ocurred downloading: {uri}\n{e.Message}");
-                        return Array.Empty<DownloadableFile>();
-                    }
-                }, dataflowBlockOptions);
-            var downloaderBlock = new ActionBlock<DownloadableFile>(async (file) =>
+            using BlockingCollection<IAsyncEnumerable<DownloadableFile>> fileEnumerables = new();
+            await urls.ForEachParallelAsync(async (uri) =>
             {
                 try
                 {
-                    await DownloadFileAsync(file).ConfigureAwait(false);
+                    fileEnumerables.Add(await GetImageUris(uri, outputPath).ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {
-                    errors.Add($"{e.Message}\n{e.InnerException?.Message}");
+                    errors.Add($"An error ocurred downloading: {uri}\n{e.Message}");
                 }
-            }, dataflowBlockOptions);
+            }).ConfigureAwait(false);
 
-            using IDisposable imagesUriToDownloaderLink = uriToImagesUrisBlock.LinkTo(downloaderBlock, new DataflowLinkOptions() { PropagateCompletion = true });
-
-            List<Task> tasks = new();
-            foreach (var uri in urls)
-                tasks.Add(uriToImagesUrisBlock.SendAsync(uri));
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            uriToImagesUrisBlock.Complete();
-
-            await downloaderBlock.Completion.ConfigureAwait(false);
+            foreach (var fileEnumerable in fileEnumerables)
+            {
+                await fileEnumerable.ForEachParallelAsync(async (file) =>
+                {
+                    try
+                    {
+                        await DownloadFileAsync(file).ConfigureAwait(false);
+                    }
+                    catch (Exception e)
+                    {
+                        errors.Add($"{e.Message}\n{e.InnerException?.Message}");
+                    }
+                }, _maxItems).ConfigureAwait(false);
+            }
             return errors.ToArray();
         }
 
-        private async Task<IEnumerable<DownloadableFile>> GetImageUris(Uri uri, string mainPath)
+        private async Task<IAsyncEnumerable<DownloadableFile>> GetImageUris(Uri uri, string mainPath)
         {
             IResourceUriProvider uriProvider = GetDownloader(uri);
             if (uriProvider is null)
@@ -122,7 +113,7 @@ namespace Comic_Downloader.CMD
             int numberOfImages = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
             Interlocked.Add(ref _totalImageCount, numberOfImages);
 
-            return await uriProvider.GetUris(uri, mainPath).ConfigureAwait(false);
+            return uriProvider.GetUris(uri, mainPath);
         }
 
         private async Task DownloadFileAsync(DownloadableFile downloadableFile)
@@ -148,7 +139,7 @@ namespace Comic_Downloader.CMD
             }
             finally
             {
-                OnImageDownloaded();
+                OnFileDownloaded();
             }
         }
 
@@ -169,7 +160,7 @@ namespace Comic_Downloader.CMD
             return null;
         }
 
-        private void OnImageDownloaded()
+        private void OnFileDownloaded()
         {
             lock (_lock)
             {

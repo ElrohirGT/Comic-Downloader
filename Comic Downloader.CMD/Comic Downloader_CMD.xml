@@ -116,6 +116,14 @@
             Encapsulates all the methods required to download a resource from one online host.
             </summary>
         </member>
+        <member name="M:Comic_Downloader.CMD.IResourceUriProvider.GetNumberOfItems(System.Uri)">
+            <summary>
+            Get's how many items will be downloaded.
+            The implementation needs to be thread safe.
+            </summary>
+            <param name="uri">The uri where the resource lives.</param>
+            <returns>A task that'll return the number of items that will be downloaded.</returns>
+        </member>
         <member name="M:Comic_Downloader.CMD.IResourceUriProvider.GetUris(System.Uri,System.String)">
             <summary>
             Get's all the files that will be downloaded.

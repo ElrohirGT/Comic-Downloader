@@ -19,7 +19,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             return imageNodes.Count;
         }
 
-        public override async Task<IEnumerable<DownloadableFile>> GetUris(Uri uri, string mainPath)
+        public override async IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath)
         {
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
@@ -28,10 +28,11 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             string comicPath = ConstructComicPath(mainPath, title);
 
             var imageNodes = document.DocumentNode.SelectNodes(@"//div[@class=""wp-content""]//img");
-            DownloadableFile[] files = new DownloadableFile[imageNodes.Count];
             for (int i = 0; i < imageNodes.Count; i++)
-                files[i] = new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = new Uri(imageNodes[i].Attributes["src"].Value) };
-            return files;
+            {
+                Uri imageUri = new Uri(imageNodes[i].Attributes["src"].Value);
+                yield return new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = imageUri };
+            }
         }
     }
 }

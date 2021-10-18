@@ -24,7 +24,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             return int.Parse(numberOfImages);
         }
 
-        public override async Task<IEnumerable<DownloadableFile>> GetUris(Uri uri, string mainPath)
+        public override async IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath)
         {
             HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
@@ -36,7 +36,6 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             HtmlNode tableNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()-1]");
             int numberOfPages = int.Parse(tableNode.InnerText);
 
-            List<DownloadableFile> files = new();
             int imgCount = 0;
             for (int i = 0; i < numberOfPages; i++)
             {
@@ -47,7 +46,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri imageUri = new Uri(imgNode.Attributes["src"].Value);
 
-                    files.Add(new DownloadableFile() { FileName = imgCount + j, OutputPath = comicPath, Uri = imageUri });
+                    yield return new DownloadableFile() { FileName = imgCount + j, OutputPath = comicPath, Uri = imageUri };
 
                     bool isLastExecutionCycle = j + 1 == imgLinksNodes.Count;
                     if (isLastExecutionCycle)
@@ -63,7 +62,6 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
                     document = await _web.LoadFromWebAsync(nextPageUrl).ConfigureAwait(false);
                 }
             }
-            return files;
         }
     }
 }
