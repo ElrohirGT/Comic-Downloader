@@ -13,13 +13,6 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
     {
         private HtmlWeb _web = new HtmlWeb();
 
-        private static HtmlNode[] GetTheImages(HtmlDocument doc)
-        {
-            var allImageNodes = doc.DocumentNode.SelectNodes(@"//div[@class=""comicimg""]//img");
-            var imageNodes = allImageNodes.Where(n => n.Attributes["src"].Value.StartsWith("http")).ToArray();
-            return imageNodes;
-        }
-
         public override async Task<int> GetNumberOfItems(Uri uri)
         {
             HtmlDocument doc = await _web.LoadFromWebAsync(uri.AbsoluteUri);
@@ -39,6 +32,13 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
                 Uri imageUri = new Uri(imageNodes[i].Attributes["src"].Value);
                 yield return new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = imageUri };
             }
+        }
+
+        private static HtmlNode[] GetTheImages(HtmlDocument doc)
+        {
+            var allImageNodes = doc.DocumentNode.SelectNodes(@"//div[@class=""comicimg""]//img");
+            var imageNodes = allImageNodes.Where(n => n.Attributes["src"].Value.StartsWith("http")).ToArray();
+            return imageNodes;
         }
     }
 }

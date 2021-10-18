@@ -18,8 +18,8 @@ namespace Comic_Downloader.CMD
         private readonly object _lock = new();
         private readonly IDictionary<string, IResourceUriProvider> _registeredProviders;
         private int _currentDownloadedImages;
-        private int _totalImageCount;
         private int _maxItems;
+        private int _totalImageCount;
 
         /// <summary>
         /// Creates an instance of <see cref="Downloader"/> with the default downlaoders.
@@ -105,15 +105,13 @@ namespace Comic_Downloader.CMD
             return errors.ToArray();
         }
 
-        private async Task<IAsyncEnumerable<DownloadableFile>> GetImageUris(Uri uri, string mainPath)
+        private string ConstructFilePath(string uriWithoutQuery, object fileName, string comicPath)
         {
-            IResourceUriProvider uriProvider = GetDownloader(uri);
-            if (uriProvider is null)
-                throw new NotSupportedException($"{uri} is not supported!");
-            int numberOfImages = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
-            Interlocked.Add(ref _totalImageCount, numberOfImages);
+            fileName ??= Path.GetFileName(uriWithoutQuery);
+            fileName = BaseResourceUriProvider.SanitizeFileName(fileName);
+            string fileExtension = Path.GetExtension(uriWithoutQuery);
 
-            return uriProvider.GetUris(uri, mainPath);
+            return Path.Combine(comicPath, $"{fileName}{fileExtension}");
         }
 
         private async Task DownloadFileAsync(DownloadableFile downloadableFile)
@@ -143,21 +141,23 @@ namespace Comic_Downloader.CMD
             }
         }
 
-        private string ConstructFilePath(string uriWithoutQuery, object fileName, string comicPath)
-        {
-            fileName ??= Path.GetFileName(uriWithoutQuery);
-            fileName = BaseResourceUriProvider.SanitizeFileName(fileName);
-            string fileExtension = Path.GetExtension(uriWithoutQuery);
-
-            return Path.Combine(comicPath, $"{fileName}{fileExtension}");
-        }
-
         private IResourceUriProvider GetDownloader(Uri url)
         {
             var host = url.Host;
             if (_registeredProviders.TryGetValue(host, out IResourceUriProvider downloader))
                 return downloader;
             return null;
+        }
+
+        private async Task<IAsyncEnumerable<DownloadableFile>> GetImageUris(Uri uri, string mainPath)
+        {
+            IResourceUriProvider uriProvider = GetDownloader(uri);
+            if (uriProvider is null)
+                throw new NotSupportedException($"{uri} is not supported!");
+            int numberOfImages = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
+            Interlocked.Add(ref _totalImageCount, numberOfImages);
+
+            return uriProvider.GetUris(uri, mainPath);
         }
 
         private void OnFileDownloaded()

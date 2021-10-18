@@ -23,10 +23,6 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             INVALID_CHARS_REGEX = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)), RegexOptions.Compiled);
         }
 
-        public abstract Task<int> GetNumberOfItems(Uri uri);
-
-        public abstract IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
-
         /// <summary>
         /// Please initialize an instance of this class before calling this method.
         /// Constructs and sanitizes a comic path.
@@ -47,5 +43,9 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
         /// <param name="fileName">The filename that will be sanitized.</param>
         /// <returns>The filename with all the invalid characters removed</returns>
         public static string SanitizeFileName(object fileName) => INVALID_CHARS_REGEX.Replace(fileName.ToString(), string.Empty);
+
+        public abstract Task<int> GetNumberOfItems(Uri uri);
+
+        public abstract IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
     }
 }

@@ -10,15 +10,16 @@ namespace Comic_Downloader.CMD
 {
     internal class Program
     {
-        private const int MAX_IMAGES_AT_A_TIME = 10;
-        private static HttpClient _httpClient = new HttpClient();
         private const string LOG_FORMAT = "Progress: {0}/{1}";
+        private const int MAX_IMAGES_AT_A_TIME = 10;
 
         private static readonly string[] _title = new string[]
         {
             "█▀▄ █▀█ █░█░█ █▄░█ █░░ █▀█ ▄▀█ █▀▄ █▀▀ █▀█",
             "█▄▀ █▄█ ▀▄▀▄▀ █░▀█ █▄▄ █▄█ █▀█ █▄▀ ██▄ █▀▄"
         };
+
+        private static HttpClient _httpClient = new HttpClient();
 
         private static void Main()
         {
