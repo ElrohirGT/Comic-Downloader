@@ -1,18 +1,16 @@
 ﻿using HtmlAgilityPack;
 using System;
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD.ComicsDownloaders
+namespace Comic_Downloader.CMD.ComicsUriProviders
 {
     /// <summary>
-    /// <see cref="IResourceDownloader"/> implementation for the <see href="vercomicsporno.com"/> host.
+    /// <see cref="IResourceUriProvider"/> implementation for the <see href="vercomicsporno.com"/> host.
     /// </summary>
-    public sealed class VCPComicDownloader : BaseComicDownloader
+    public sealed class VCPComicDownloader : BaseResourceUriProvider
     {
-        protected override async Task<int> Get_Number_Of_Images(Uri uri)
+        public override async Task<int> GetNumberOfItems(Uri uri)
         {
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
@@ -21,7 +19,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             return imageNodes.Count;
         }
 
-        protected override async Task Download_Comic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
+        public override async Task<IEnumerable<DownloadableFile>> GetUris(Uri uri, string mainPath)
         {
             var web = new HtmlWeb();
             HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
@@ -30,10 +28,10 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
             string comicPath = ConstructComicPath(mainPath, title);
 
             var imageNodes = document.DocumentNode.SelectNodes(@"//div[@class=""wp-content""]//img");
-            Task[] tasks = new Task[imageNodes.Count];
+            DownloadableFile[] files = new DownloadableFile[imageNodes.Count];
             for (int i = 0; i < imageNodes.Count; i++)
-                tasks[i] = DownloadFileAsync(comicPath, new Uri(imageNodes[i].Attributes["src"].Value), gate, httpClient, errors, i.ToString());
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+                files[i] = new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = new Uri(imageNodes[i].Attributes["src"].Value) };
+            return files;
         }
     }
 }

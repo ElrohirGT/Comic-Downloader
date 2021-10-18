@@ -85,25 +85,9 @@ namespace Comic_Downloader.CMD
             //    //new Uri("https://e-hentai.org/g/2017110/463359c6ce/"),
             //    new Uri("https://e-hentai.org/g/2017266/d916aea2de/"),
             //    new Uri("https://e-hentai.org/g/2017115/cb506df526/"),
+            //    new Uri("https://e-hentai.org/g/2039222/4086a69148/")
             //};
             //string outputPath = @"D:\elroh\Documents\TestsDownloads2";
-
-            //List<Uri> uris = new()
-            //{
-            //    new Uri("https://nhentai.net/g/375554/"),
-            //    new Uri("https://nhentai.net/g/375396/"),
-            //    new Uri("https://nhentai.net/g/375254/"),
-            //    new Uri("https://nhentai.net/g/375145/"),
-            //    new Uri("https://nhentai.net/g/375129/"),
-            //    new Uri("https://nhentai.net/g/374896/"),
-            //    new Uri("https://nhentai.net/g/374345/"),
-            //    new Uri("https://nhentai.net/g/374003/"),
-            //    new Uri("https://nhentai.net/g/372600/"),
-            //    new Uri("https://nhentai.net/g/372593/"),
-            //    new Uri("https://nhentai.net/g/372492/"),
-            //    new Uri("https://nhentai.net/g/372225/"),
-            //    new Uri("https://nhentai.net/g/372184/")
-            //};
 
             IDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
             SubDivision();

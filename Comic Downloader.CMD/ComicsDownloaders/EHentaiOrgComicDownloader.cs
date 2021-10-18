@@ -1,21 +1,30 @@
 ﻿using HtmlAgilityPack;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD.ComicsDownloaders
+namespace Comic_Downloader.CMD.ComicsUriProviders
 {
     /// <summary>
-    /// <see cref="IResourceDownloader"/> implementation for the <see href="e-hentai.org"/> host.
+    /// <see cref="IResourceUriProvider"/> implementation for the <see href="e-hentai.org"/> host.
     /// </summary>
-    public sealed class EHentaiOrgComicDownloader : BaseComicDownloader
+    public sealed class EHentaiOrgComicDownloader : BaseResourceUriProvider
     {
         private HtmlWeb _web = new HtmlWeb();
 
-        protected override async Task Download_Comic(Uri uri, string mainPath, HttpClient httpClient, SemaphoreSlim gate, BlockingCollection<string> errors)
+        public override async Task<int> GetNumberOfItems(Uri uri)
+        {
+            //FIXME web.LoadFromWebAsync throws a null exception when this url is used.
+            //https://e-hentai.org/g/913931/105605c620/
+            HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
+
+            var tdAdjecentNode = document.DocumentNode.SelectSingleNode(@"//td[@class=""gdt1""][text()=""Length:""]");
+
+            string numberOfImages = tdAdjecentNode.NextSibling.InnerText.Split(' ')[0];
+            return int.Parse(numberOfImages);
+        }
+
+        public override async Task<IEnumerable<DownloadableFile>> GetUris(Uri uri, string mainPath)
         {
             HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
@@ -26,7 +35,8 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
 
             HtmlNode tableNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()-1]");
             int numberOfPages = int.Parse(tableNode.InnerText);
-            List<Task> tasks = new();
+
+            List<DownloadableFile> files = new();
             int imgCount = 0;
             for (int i = 0; i < numberOfPages; i++)
             {
@@ -37,7 +47,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri imageUri = new Uri(imgNode.Attributes["src"].Value);
 
-                    tasks.Add(DownloadFileAsync(comicPath, imageUri, gate, httpClient, errors, imgCount + j));
+                    files.Add(new DownloadableFile() { FileName = imgCount + j, OutputPath = comicPath, Uri = imageUri });
 
                     bool isLastExecutionCycle = j + 1 == imgLinksNodes.Count;
                     if (isLastExecutionCycle)
@@ -53,19 +63,7 @@ namespace Comic_Downloader.CMD.ComicsDownloaders
                     document = await _web.LoadFromWebAsync(nextPageUrl).ConfigureAwait(false);
                 }
             }
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        protected override async Task<int> Get_Number_Of_Images(Uri uri)
-        {
-            //FIXME web.LoadFromWebAsync throws a null exception when this url is used.
-            //https://e-hentai.org/g/913931/105605c620/
-            HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
-
-            var tdAdjecentNode = document.DocumentNode.SelectSingleNode(@"//td[@class=""gdt1""][text()=""Length:""]");
-
-            string numberOfImages = tdAdjecentNode.NextSibling.InnerText.Split(' ')[0];
-            return int.Parse(numberOfImages);
+            return files;
         }
     }
 }
