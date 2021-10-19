@@ -162,10 +162,12 @@ namespace Comic_Downloader.CMD
 
         private void OnFileDownloaded()
         {
+            //INFO: Is locking so only the events are invoked one after the other
             lock (_lock)
             {
                 DownloadReport?.Invoke(new DownloadReportEventArgs()
                 {
+                    //INFO: Interlocked is used just in case a later refactoring uses this variable.
                     CurrentCount = Interlocked.Increment(ref _currentDownloadedImages),
                     TotalCount = _totalImageCount
                 });
