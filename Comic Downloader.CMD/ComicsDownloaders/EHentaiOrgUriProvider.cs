@@ -1,6 +1,8 @@
 ﻿using HtmlAgilityPack;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Comic_Downloader.CMD.ComicsUriProviders
@@ -8,7 +10,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
     /// <summary>
     /// <see cref="IResourceUriProvider"/> implementation for the <see href="e-hentai.org"/> host.
     /// </summary>
-    public sealed class EHentaiOrgComicDownloader : BaseResourceUriProvider
+    public sealed class EHentaiOrgUriProvider : BaseResourceUriProvider
     {
         private HtmlWeb _web = new HtmlWeb();
 
@@ -36,22 +38,28 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             HtmlNode tableNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()-1]");
             int numberOfPages = int.Parse(tableNode.InnerText);
 
-            int imgCount = 0;
+            int imageCount = 0;
             for (int i = 0; i < numberOfPages; i++)
             {
                 HtmlNodeCollection imgLinksNodes = document.DocumentNode.SelectNodes(@"//div[@id=""gdt""]//a");
-                for (int j = 0; j < imgLinksNodes.Count; j++)
+                //INFO: This way all image links from a page will be released at the same time.
+                using BlockingCollection<DownloadableFile> batch = new(imgLinksNodes.Count);
+
+                await imgLinksNodes.ForEachParallelAsync(async imgLinkNode =>
                 {
-                    HtmlDocument imgDoc = await _web.LoadFromWebAsync(imgLinksNodes[j].Attributes["href"].Value).ConfigureAwait(false);
+                    int filename = imageCount + imgLinksNodes.IndexOf(imgLinkNode);
+                    HtmlDocument imgDoc = await _web.LoadFromWebAsync(imgLinkNode.Attributes["href"].Value).ConfigureAwait(false);
+
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri imageUri = new Uri(imgNode.Attributes["src"].Value);
 
-                    yield return new DownloadableFile() { FileName = imgCount + j, OutputPath = comicPath, Uri = imageUri };
+                    DownloadableFile file = new DownloadableFile() { FileName = filename, OutputPath = comicPath, Uri = imageUri };
+                    batch.Add(file);
+                });
+                imageCount += imgLinksNodes.Count;
 
-                    bool isLastExecutionCycle = j + 1 == imgLinksNodes.Count;
-                    if (isLastExecutionCycle)
-                        imgCount += imgLinksNodes.Count;
-                }
+                foreach (var file in batch)
+                    yield return file;
 
                 bool lastExecutionCycle = i + 1 == numberOfPages;
                 if (!lastExecutionCycle)

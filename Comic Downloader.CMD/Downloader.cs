@@ -16,17 +16,17 @@ namespace Comic_Downloader.CMD
     {
         private readonly HttpClient _httpClient;//This should not be disposed of in this class
         private readonly object _lock = new();
+        private readonly int _maxItems;
         private readonly IDictionary<string, IResourceUriProvider> _registeredProviders;
         private int _currentDownloadedImages;
-        private int _maxItems;
         private int _totalImageCount;
 
         /// <summary>
         /// Creates an instance of <see cref="Downloader"/> with the default downlaoders.
         /// The default downloaders are:
-        /// <see cref="VCPComicDownloader"/>,
-        /// <see cref="EHentaiOrgComicDownloader"/>
-        /// and <see cref="VMPComicDownloader"/>.
+        /// <see cref="VCPUriProvider"/>,
+        /// <see cref="EHentaiOrgUriProvider"/>
+        /// and <see cref="VMPUriProvider"/>.
         /// </summary>
         /// <param name="httpClient">The HTTP client to reuse.</param>
         /// <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
@@ -36,9 +36,9 @@ namespace Comic_Downloader.CMD
                  maxItems: maxItems,
                  registeredProviders: new Dictionary<string, IResourceUriProvider>()
                  {
-                     { "vercomicsporno.com", new VCPComicDownloader() },
-                     { "e-hentai.org", new EHentaiOrgComicDownloader() },
-                     { "vermangasporno.com", new VMPComicDownloader() }
+                     { "vercomicsporno.com", new VCPUriProvider() },
+                     { "e-hentai.org", new EHentaiOrgUriProvider() },
+                     { "vermangasporno.com", new VMPUriProvider() }
                  })
         { }
 
@@ -88,7 +88,7 @@ namespace Comic_Downloader.CMD
                 }
             }).ConfigureAwait(false);
 
-            foreach (var fileEnumerable in fileEnumerables)
+            foreach (IAsyncEnumerable<DownloadableFile> fileEnumerable in fileEnumerables)
             {
                 await fileEnumerable.ForEachParallelAsync(async (file) =>
                 {
@@ -166,7 +166,7 @@ namespace Comic_Downloader.CMD
             {
                 DownloadReport?.Invoke(new DownloadReportEventArgs()
                 {
-                    CurrentCount = ++_currentDownloadedImages,
+                    CurrentCount = Interlocked.Increment(ref _currentDownloadedImages),
                     TotalCount = _totalImageCount
                 });
             }

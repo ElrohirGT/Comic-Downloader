@@ -6,8 +6,8 @@
     <members>
         <member name="T:Comic_Downloader.CMD.ComicsUriProviders.BaseResourceUriProvider">
             <summary>
-            Comic implementation of <see cref="T:Comic_Downloader.CMD.IResourceUriProvider" />.
-            Contains helper methods that help subclasses implement the methos of <see cref="T:Comic_Downloader.CMD.IResourceUriProvider" />.
+            Comic implementation of <see cref="T:Comic_Downloader.CMD.IResourceUriProvider"/>.
+            Contains helper methods that help subclasses implement the methos of <see cref="T:Comic_Downloader.CMD.IResourceUriProvider"/>.
             </summary>
         </member>
         <member name="M:Comic_Downloader.CMD.ComicsUriProviders.BaseResourceUriProvider.ConstructComicPath(System.String,System.String)">
@@ -27,40 +27,40 @@
             <param name="fileName">The filename that will be sanitized.</param>
             <returns>The filename with all the invalid characters removed</returns>
         </member>
-        <member name="T:Comic_Downloader.CMD.ComicsUriProviders.EHentaiOrgComicDownloader">
+        <member name="T:Comic_Downloader.CMD.ComicsUriProviders.EHentaiOrgUriProvider">
             <summary>
-            <see cref="T:Comic_Downloader.CMD.IResourceUriProvider" /> implementation for the <see href="e-hentai.org" /> host.
+            <see cref="T:Comic_Downloader.CMD.IResourceUriProvider"/> implementation for the <see href="e-hentai.org"/> host.
             </summary>
         </member>
-        <member name="T:Comic_Downloader.CMD.ComicsUriProviders.VCPComicDownloader">
+        <member name="T:Comic_Downloader.CMD.ComicsUriProviders.VCPUriProvider">
             <summary>
-            <see cref="T:Comic_Downloader.CMD.IResourceUriProvider" /> implementation for the <see href="vercomicsporno.com" /> host.
+            <see cref="T:Comic_Downloader.CMD.IResourceUriProvider"/> implementation for the <see href="vercomicsporno.com"/> host.
             </summary>
         </member>
-        <member name="T:Comic_Downloader.CMD.ComicsUriProviders.VMPComicDownloader">
+        <member name="T:Comic_Downloader.CMD.ComicsUriProviders.VMPUriProvider">
             <summary>
-            <see cref="T:Comic_Downloader.CMD.IResourceUriProvider" /> implementation for the <see href="vermangasporno.com" /> host.
+            <see cref="T:Comic_Downloader.CMD.IResourceUriProvider"/> implementation for the <see href="vermangasporno.com"/> host.
             </summary>
         </member>
         <member name="T:Comic_Downloader.CMD.Downloader">
             <summary>
-            Basic Implementation of a <see cref="T:Comic_Downloader.CMD.IDownloader" />.
+            Basic Implementation of a <see cref="T:Comic_Downloader.CMD.IDownloader"/>.
             </summary>
         </member>
         <member name="M:Comic_Downloader.CMD.Downloader.#ctor(System.Net.Http.HttpClient,System.Int32)">
             <summary>
-            Creates an instance of <see cref="T:Comic_Downloader.CMD.Downloader" /> with the default downlaoders.
+            Creates an instance of <see cref="T:Comic_Downloader.CMD.Downloader"/> with the default downlaoders.
             The default downloaders are:
-            <see cref="T:Comic_Downloader.CMD.ComicsUriProviders.VCPComicDownloader" />,
-            <see cref="T:Comic_Downloader.CMD.ComicsUriProviders.EHentaiOrgComicDownloader" />
-            and <see cref="T:Comic_Downloader.CMD.ComicsUriProviders.VMPComicDownloader" />.
+            <see cref="T:Comic_Downloader.CMD.ComicsUriProviders.VCPUriProvider"/>,
+            <see cref="T:Comic_Downloader.CMD.ComicsUriProviders.EHentaiOrgUriProvider"/>
+            and <see cref="T:Comic_Downloader.CMD.ComicsUriProviders.VMPUriProvider"/>.
             </summary>
             <param name="httpClient">The HTTP client to reuse.</param>
             <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
         </member>
         <member name="M:Comic_Downloader.CMD.Downloader.#ctor(System.Net.Http.HttpClient,System.Collections.Generic.IDictionary{System.String,Comic_Downloader.CMD.IResourceUriProvider},System.Int32)">
             <summary>
-            Creates an instance of a <see cref="T:Comic_Downloader.CMD.Downloader" /> with custom providers,
+            Creates an instance of a <see cref="T:Comic_Downloader.CMD.Downloader"/> with custom providers,
             the string is the host name and the value is the instance to reuse.
             An example of a host name would be "e-hentai.org".
             </summary>
@@ -105,7 +105,7 @@
         </member>
         <member name="M:Comic_Downloader.CMD.IDownloader.DownloadComics(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
             <summary>
-            Downloads all the comics from the specified <paramref name="urls" /> if it recognizes them.
+            Downloads all the comics from the specified <paramref name="urls"/> if it recognizes them.
             </summary>
             <param name="urls">The array of urls of the comics.</param>
             <param name="outputPath">The path where the comics folders will be created.</param>
@@ -130,7 +130,7 @@
             The implementation needs to be thread safe.
             </summary>
             <param name="uri">The uri where the resource lives.</param>
-            <returns>A task that'll return all the necessary information to download the files.</returns>
+            <returns>An async enumerator that'll return all the uris.</returns>
         </member>
     </members>
 </doc>

@@ -9,7 +9,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
     /// <summary>
     /// <see cref="IResourceUriProvider"/> implementation for the <see href="vermangasporno.com"/> host.
     /// </summary>
-    public sealed class VMPComicDownloader : BaseResourceUriProvider
+    public sealed class VMPUriProvider : BaseResourceUriProvider
     {
         private HtmlWeb _web = new HtmlWeb();
 
@@ -27,11 +27,17 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             string comicPath = ConstructComicPath(mainPath, comicTitle);
             var imageNodes = GetTheImages(doc);
 
+            //INFO: Getting the uris is faster in this page like in the VCPUriProvider
+            DownloadableFile[] batch = new DownloadableFile[imageNodes.Length];
             for (int i = 0; i < imageNodes.Length; i++)
             {
                 Uri imageUri = new Uri(imageNodes[i].Attributes["src"].Value);
-                yield return new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = imageUri };
+                DownloadableFile file = new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = imageUri };
+                batch[i] = file;
             }
+
+            foreach (var file in batch)
+                yield return file;
         }
 
         private static HtmlNode[] GetTheImages(HtmlDocument doc)
