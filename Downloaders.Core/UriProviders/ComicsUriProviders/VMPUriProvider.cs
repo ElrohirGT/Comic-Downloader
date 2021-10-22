@@ -1,7 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Downloaders.Core.UriProviders.ComicsUriProviders
@@ -19,7 +19,7 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
             return GetTheImages(doc).Length;
         }
 
-        public override async IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath)
+        public override async Task GetUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer)
         {
             HtmlDocument doc = await _web.LoadFromWebAsync(uri.AbsoluteUri);
             string comicTitle = doc.DocumentNode.SelectSingleNode(@"//div[@class=""comicimg""]//p[1]").InnerText;
@@ -28,16 +28,12 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
             var imageNodes = GetTheImages(doc);
 
             //INFO: Getting the uris is faster in this page like in the VCPUriProvider
-            DownloadableFile[] batch = new DownloadableFile[imageNodes.Length];
-            Parallel.For(0, imageNodes.Length, (int i) =>
+            await imageNodes.ForParallelAsync(async (int index, HtmlNode imageNode) =>
             {
-                Uri imageUri = new(imageNodes[i].Attributes["src"].Value);
-                DownloadableFile file = new() { FileName = i, OutputPath = comicPath, Uri = imageUri };
-                batch[i] = file;
-            });
-
-            foreach (var file in batch)
-                yield return file;
+                Uri imageUri = new(imageNode.Attributes["src"].Value);
+                DownloadableFile file = new() { FileName = index, OutputPath = comicPath, Uri = imageUri };
+                await writer.WriteAsync(file).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         private static HtmlNode[] GetTheImages(HtmlDocument doc)

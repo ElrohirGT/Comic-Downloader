@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Downloaders.Core
@@ -29,6 +29,6 @@ namespace Downloaders.Core
 
         public abstract Task<int> GetNumberOfItems(Uri uri);
 
-        public abstract IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
+        public abstract Task GetUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer);
     }
 }

@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Downloaders.Core.UriProviders.ComicsUriProviders
@@ -25,7 +24,7 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
             return int.Parse(numberOfImages);
         }
 
-        public override async IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath)
+        public override async Task GetUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer)
         {
             HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
@@ -39,9 +38,8 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
             for (int i = 0; i < numberOfPages; i++)
             {
                 HtmlNodeCollection imgLinksNodes = document.DocumentNode.SelectNodes(@"//div[@id=""gdt""]//a");
-                //INFO: This way all image links from a page will be released at the same time.
-                using BlockingCollection<DownloadableFile> batch = new(imgLinksNodes.Count);
 
+                //INFO: This way all image links from a page will be released at the same time.
                 await imgLinksNodes.ForParallelAsync(async (int index, HtmlNode imgLinkNode) =>
                 {
                     int filename = imageCount + index;
@@ -51,12 +49,9 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
                     Uri imageUri = new(imgNode.Attributes["src"].Value);
 
                     DownloadableFile file = new() { FileName = filename, OutputPath = comicPath, Uri = imageUri };
-                    batch.Add(file);
-                });
+                    await writer.WriteAsync(file).ConfigureAwait(false);
+                }).ConfigureAwait(false);
                 imageCount += imgLinksNodes.Count;
-
-                foreach (var file in batch)
-                    yield return file;
 
                 bool lastExecutionCycle = i + 1 == numberOfPages;
                 if (!lastExecutionCycle)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Downloaders.Core
@@ -76,21 +77,12 @@ namespace Downloaders.Core
             _totalImageCount = 0;
 
             using BlockingCollection<IAsyncEnumerable<DownloadableFile>> fileEnumerables = new();
-            await urls.ForEachParallelAsync(async (uri) =>
-            {
-                try
-                {
-                    fileEnumerables.Add(await GetImageUris(uri, outputPath).ConfigureAwait(false));
-                }
-                catch (Exception e)
-                {
-                    errors.Add($"An error ocurred downloading: {uri}\n{e.Message}");
-                }
-            }).ConfigureAwait(false);
+            UnboundedChannelOptions options = new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true };
+            var channel = Channel.CreateUnbounded<DownloadableFile>(options);
 
-            foreach (IAsyncEnumerable<DownloadableFile> fileEnumerable in fileEnumerables)
+            var t = Task.Run(() =>
             {
-                await fileEnumerable.ForEachParallelAsync(async (file) =>
+                return channel.Reader.ReadAllAsync().ForEachParallelAsync(async (file) =>
                 {
                     try
                     {
@@ -101,8 +93,23 @@ namespace Downloaders.Core
                     {
                         errors.Add($"{e.Message}\n{e.InnerException?.Message}");
                     }
-                }, _maxItems).ConfigureAwait(false);
-            }
+                }, _maxItems);
+            });
+
+            await urls.ForEachParallelAsync(async (uri) =>
+            {
+                try
+                {
+                    await GetImageUris(uri, outputPath, channel.Writer).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    errors.Add($"An error ocurred downloading: {uri}\n{e.Message}");
+                }
+            }).ConfigureAwait(false);
+
+            channel.Writer.Complete();
+            await t.ConfigureAwait(false);
             return errors.ToArray();
         }
 
@@ -148,7 +155,7 @@ namespace Downloaders.Core
             return _registeredProviders.TryGetValue(host, out var downloader) ? downloader : null;
         }
 
-        private async Task<IAsyncEnumerable<DownloadableFile>> GetImageUris(Uri uri, string mainPath)
+        private async Task GetImageUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer)
         {
             IResourceUriProvider? uriProvider = GetDownloader(uri);
             if (uriProvider is null)
@@ -156,12 +163,12 @@ namespace Downloaders.Core
             int numberOfImages = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
             Interlocked.Add(ref _totalImageCount, numberOfImages);
 
-            return uriProvider.GetUris(uri, mainPath);
+            await uriProvider.GetUris(uri, mainPath, writer).ConfigureAwait(false);
         }
 
         private void OnFileDownloaded()
         {
-            //INFO: Is locking so only the events are invoked one after the other
+            //INFO: Is locking so the events are invoked one after the other
             lock (_lock)
             {
                 DownloadReport?.Invoke(new DownloadReportEventArgs()

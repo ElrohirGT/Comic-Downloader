@@ -6,8 +6,8 @@
     <members>
         <member name="T:Downloaders.Core.BaseResourceUriProvider">
             <summary>
-            Comic implementation of <see cref="T:Downloaders.Core.IResourceUriProvider"/>.
-            Contains helper methods that help subclasses implement the methos of <see cref="T:Downloaders.Core.IResourceUriProvider"/>.
+            Comic implementation of <see cref="T:Downloaders.Core.IResourceUriProvider" />.
+            Contains helper methods that help subclasses implement the methos of <see cref="T:Downloaders.Core.IResourceUriProvider" />.
             </summary>
         </member>
         <member name="M:Downloaders.Core.BaseResourceUriProvider.SanitizeFileName(System.Object)">
@@ -25,7 +25,7 @@
         </member>
         <member name="P:Downloaders.Core.DownloadableFile.FileName">
             <summary>
-            The that will be given to the file once it's downloaded.
+            The that will be given to the file once it's downloaded, this name shouldn't contain the extension.
             If it's null, the filename from the uri will be used instead.
             </summary>
         </member>
@@ -43,23 +43,23 @@
         </member>
         <member name="T:Downloaders.Core.Downloader">
             <summary>
-            Basic Implementation of a <see cref="T:Downloaders.Core.IDownloader"/>.
+            Basic Implementation of a <see cref="T:Downloaders.Core.IDownloader" />.
             </summary>
         </member>
         <member name="M:Downloaders.Core.Downloader.#ctor(System.Net.Http.HttpClient,System.Int32)">
             <summary>
-            Creates an instance of <see cref="T:Downloaders.Core.Downloader"/> with the default downlaoders.
+            Creates an instance of <see cref="T:Downloaders.Core.Downloader" /> with the default downlaoders.
             The default downloaders are:
-            <see cref="T:Downloaders.Core.UriProviders.ComicsUriProviders.VCPUriProvider"/>,
-            <see cref="T:Downloaders.Core.UriProviders.ComicsUriProviders.EHentaiOrgUriProvider"/>
-            and <see cref="T:Downloaders.Core.UriProviders.ComicsUriProviders.VMPUriProvider"/>.
+            <see cref="T:Downloaders.Core.UriProviders.ComicsUriProviders.VCPUriProvider" />,
+            <see cref="T:Downloaders.Core.UriProviders.ComicsUriProviders.EHentaiOrgUriProvider" />
+            and <see cref="T:Downloaders.Core.UriProviders.ComicsUriProviders.VMPUriProvider" />.
             </summary>
             <param name="httpClient">The HTTP client to reuse.</param>
             <param name="maxItems">The maximum number of items that will be downloaded simultaneously.</param>
         </member>
         <member name="M:Downloaders.Core.Downloader.#ctor(System.Net.Http.HttpClient,System.Collections.Generic.IDictionary{System.String,Downloaders.Core.IResourceUriProvider},System.Int32)">
             <summary>
-            Creates an instance of a <see cref="T:Downloaders.Core.Downloader"/> with custom providers,
+            Creates an instance of a <see cref="T:Downloaders.Core.Downloader" /> with custom providers,
             the string is the host name and the value is the instance to reuse.
             An example of a host name would be "e-hentai.org".
             </summary>
@@ -93,37 +93,37 @@
         </member>
         <member name="M:Downloaders.Core.ExtensionMethods.ForEachParallelAsync``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Threading.Tasks.Task},System.Int32,System.Threading.Tasks.TaskScheduler)">
             <summary>
-            Iterates over each element in the <paramref name="source"/>.
+            Iterates over each element in the <paramref name="source" />.
             Where each execution may run in parallel and in an async manner.
             </summary>
             <typeparam name="T">The type of the argument that will be passed to each execution.</typeparam>
-            <param name="source">The <see cref="T:System.Collections.Generic.IEnumerable`1"/> to loop through</param>
-            <param name="body">The action that will be executed for each item in the <paramref name="source"/>.</param>
+            <param name="source">The <see cref="T:System.Collections.Generic.IEnumerable`1" /> to loop through</param>
+            <param name="body">The action that will be executed for each item in the <paramref name="source" />.</param>
             <param name="maxDegreeOfParallelism">The maximum of executions that will be done concurrently.</param>
             <param name="scheduler">A custom task scheduler, if this is null the default will be used.</param>
             <returns>A task that completes once all executions have finished for each element.</returns>
         </member>
         <member name="M:Downloaders.Core.ExtensionMethods.ForEachParallelAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Func{``0,System.Threading.Tasks.Task},System.Int32,System.Threading.Tasks.TaskScheduler)">
             <summary>
-            Iterates over each element in the <paramref name="source"/>.
+            Iterates over each element in the <paramref name="source" />.
             Where each execution may run in parallel and in an async manner.
             </summary>
             <typeparam name="T">The type of the argument that will be passed to each execution.</typeparam>
-            <param name="source">The <see cref="T:System.Collections.Generic.IAsyncEnumerable`1"/> to loop through</param>
-            <param name="body">The action that will be executed for each item in the <paramref name="source"/>.</param>
+            <param name="source">The <see cref="T:System.Collections.Generic.IAsyncEnumerable`1" /> to loop through</param>
+            <param name="body">The action that will be executed for each item in the <paramref name="source" />.</param>
             <param name="maxDegreeOfParallelism">The maximum of executions that will be done concurrently.</param>
             <param name="scheduler">A custom task scheduler, if this is null the default will be used.</param>
             <returns>A task that completes once all executions have finished for each element.</returns>
         </member>
         <member name="M:Downloaders.Core.ExtensionMethods.ForParallelAsync``1(System.Collections.Generic.IEnumerable{``0},System.Func{System.Int32,``0,System.Threading.Tasks.Task},System.Int32,System.Threading.Tasks.TaskScheduler)">
             <summary>
-            Iterates over each element in the <paramref name="source"/>.
+            Iterates over each element in the <paramref name="source" />.
             Where each execution may run in parallel and in an async manner.
             It also provides the index of the element that is being iterated over.
             </summary>
             <typeparam name="T">The type of the argument that will be passed to each execution.</typeparam>
-            <param name="source">The <see cref="T:System.Collections.Generic.IEnumerable`1"/> to loop through</param>
-            <param name="body">The action that will be executed for each item in the <paramref name="source"/>.</param>
+            <param name="source">The <see cref="T:System.Collections.Generic.IEnumerable`1" /> to loop through</param>
+            <param name="body">The action that will be executed for each item in the <paramref name="source" />.</param>
             <param name="maxDegreeOfParallelism">The maximum of executions that will be done concurrently.</param>
             <param name="scheduler">A custom task scheduler, if this is null the default will be used.</param>
             <returns>A task that completes once all executions have finished for each element.</returns>
@@ -141,7 +141,7 @@
         </member>
         <member name="M:Downloaders.Core.IDownloader.DownloadComics(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
             <summary>
-            Downloads all the comics from the specified <paramref name="urls"/> if it recognizes them.
+            Downloads all the comics from the specified <paramref name="urls" /> if it recognizes them.
             </summary>
             <param name="urls">The array of urls of the comics.</param>
             <param name="outputPath">The path where the comics folders will be created.</param>
@@ -160,19 +160,19 @@
             <param name="uri">The uri where the resource lives.</param>
             <returns>A task that'll return the number of items that will be downloaded.</returns>
         </member>
-        <member name="M:Downloaders.Core.IResourceUriProvider.GetUris(System.Uri,System.String)">
+        <member name="M:Downloaders.Core.IResourceUriProvider.GetUris(System.Uri,System.String,System.Threading.Channels.ChannelWriter{Downloaders.Core.DownloadableFile})">
             <summary>
             Get's all the files that will be downloaded.
             The implementation needs to be thread safe.
             </summary>
             <param name="uri">The uri where the resource lives.</param>
-            <param name="mainPath">The main output path, may be used to construct other paths were the <see cref="T:Downloaders.Core.DownloadableFile"/> will be downloaded.</param>
+            <param name="mainPath">The main output path, may be used to construct other paths were the <see cref="T:Downloaders.Core.DownloadableFile" /> will be downloaded.</param>
             <returns>An async enumerator that'll return all the uris.</returns>
         </member>
         <member name="T:Downloaders.Core.UriProviders.ComicsUriProviders.BaseComicUriProvider">
             <summary>
             Represents the base class for all comic uri providers.
-            Contains some handy methods that help in the construction of <see cref="T:Downloaders.Core.DownloadableFile"/>'s for comics.
+            Contains some handy methods that help in the construction of <see cref="T:Downloaders.Core.DownloadableFile" />'s for comics.
             </summary>
         </member>
         <member name="M:Downloaders.Core.UriProviders.ComicsUriProviders.BaseComicUriProvider.ConstructComicPath(System.String,System.String)">
@@ -185,17 +185,17 @@
         </member>
         <member name="T:Downloaders.Core.UriProviders.ComicsUriProviders.EHentaiOrgUriProvider">
             <summary>
-            <see cref="T:Downloaders.Core.IResourceUriProvider"/> implementation for the <see href="e-hentai.org"/> host.
+            <see cref="T:Downloaders.Core.IResourceUriProvider" /> implementation for the <see href="e-hentai.org" /> host.
             </summary>
         </member>
         <member name="T:Downloaders.Core.UriProviders.ComicsUriProviders.VCPUriProvider">
             <summary>
-            <see cref="T:Downloaders.Core.IResourceUriProvider"/> implementation for the <see href="vercomicsporno.com"/> host.
+            <see cref="T:Downloaders.Core.IResourceUriProvider" /> implementation for the <see href="vercomicsporno.com" /> host.
             </summary>
         </member>
         <member name="T:Downloaders.Core.UriProviders.ComicsUriProviders.VMPUriProvider">
             <summary>
-            <see cref="T:Downloaders.Core.IResourceUriProvider"/> implementation for the <see href="vermangasporno.com"/> host.
+            <see cref="T:Downloaders.Core.IResourceUriProvider" /> implementation for the <see href="vermangasporno.com" /> host.
             </summary>
         </member>
     </members>

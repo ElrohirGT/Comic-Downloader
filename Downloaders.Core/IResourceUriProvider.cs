@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Downloaders.Core
@@ -23,7 +23,8 @@ namespace Downloaders.Core
         /// </summary>
         /// <param name="uri">The uri where the resource lives.</param>
         /// <param name="mainPath">The main output path, may be used to construct other paths were the <see cref="DownloadableFile"/> will be downloaded.</param>
-        /// <returns>An async enumerator that'll return all the uris.</returns>
-        IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
+        /// <param name="writer">The channel that stores all the <see cref="DownloadableFile"/>'s.</param>
+        /// <returns>A task that completes once all uris are written to the <paramref name="writer"/>.</returns>
+        Task GetUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer);
     }
 }
