@@ -1,4 +1,4 @@
-﻿namespace Comic_Downloader.CMD
+﻿namespace Downloaders.Core
 {
     public struct DownloadReportEventArgs
     {

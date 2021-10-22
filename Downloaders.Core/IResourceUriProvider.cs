@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD
+namespace Downloaders.Core
 {
     /// <summary>
     /// Encapsulates all the methods required to download a resource from one online host.
@@ -22,6 +22,7 @@ namespace Comic_Downloader.CMD
         /// The implementation needs to be thread safe.
         /// </summary>
         /// <param name="uri">The uri where the resource lives.</param>
+        /// <param name="mainPath">The main output path, may be used to construct other paths were the <see cref="DownloadableFile"/> will be downloaded.</param>
         /// <returns>An async enumerator that'll return all the uris.</returns>
         IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath);
     }

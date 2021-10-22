@@ -13,11 +13,14 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>Comic Downloader_CMD.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="ConsoleUtilitiesLite" Version="5.0.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Downloaders.Core\Downloaders.Core.csproj" />
   </ItemGroup>
 </Project>

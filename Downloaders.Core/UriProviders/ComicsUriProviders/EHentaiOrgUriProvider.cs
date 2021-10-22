@@ -2,17 +2,16 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD.ComicsUriProviders
+namespace Downloaders.Core.UriProviders.ComicsUriProviders
 {
     /// <summary>
     /// <see cref="IResourceUriProvider"/> implementation for the <see href="e-hentai.org"/> host.
     /// </summary>
-    public sealed class EHentaiOrgUriProvider : BaseResourceUriProvider
+    public sealed class EHentaiOrgUriProvider : BaseComicUriProvider
     {
-        private HtmlWeb _web = new HtmlWeb();
+        private readonly HtmlWeb _web = new();
 
         public override async Task<int> GetNumberOfItems(Uri uri)
         {
@@ -30,9 +29,7 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
         {
             HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
 
-            string englishTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]")?.InnerText;
-            string japaneseTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gj""]")?.InnerText;
-            string comicTitle = englishTitle ?? japaneseTitle;
+            string comicTitle = document.DocumentNode.SelectSingleNode(@"//h1[@id=""gn""]").InnerText;
             string comicPath = ConstructComicPath(mainPath, comicTitle);
 
             HtmlNode tableNode = document.DocumentNode.SelectSingleNode(@"//table[@class=""ptt""]//td[last()-1]");
@@ -51,9 +48,9 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
                     HtmlDocument imgDoc = await _web.LoadFromWebAsync(imgLinkNode.Attributes["href"].Value).ConfigureAwait(false);
 
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
-                    Uri imageUri = new Uri(imgNode.Attributes["src"].Value);
+                    Uri imageUri = new(imgNode.Attributes["src"].Value);
 
-                    DownloadableFile file = new DownloadableFile() { FileName = filename, OutputPath = comicPath, Uri = imageUri };
+                    DownloadableFile file = new() { FileName = filename, OutputPath = comicPath, Uri = imageUri };
                     batch.Add(file);
                 });
                 imageCount += imgLinksNodes.Count;

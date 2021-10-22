@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD.ComicsUriProviders
+namespace Downloaders.Core.UriProviders.ComicsUriProviders
 {
     /// <summary>
     /// <see cref="IResourceUriProvider"/> implementation for the <see href="vermangasporno.com"/> host.
     /// </summary>
-    public sealed class VMPUriProvider : BaseResourceUriProvider
+    public sealed class VMPUriProvider : BaseComicUriProvider
     {
-        private HtmlWeb _web = new HtmlWeb();
+        private readonly HtmlWeb _web = new();
 
         public override async Task<int> GetNumberOfItems(Uri uri)
         {
@@ -31,8 +31,8 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
             DownloadableFile[] batch = new DownloadableFile[imageNodes.Length];
             for (int i = 0; i < imageNodes.Length; i++)
             {
-                Uri imageUri = new Uri(imageNodes[i].Attributes["src"].Value);
-                DownloadableFile file = new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = imageUri };
+                Uri imageUri = new(imageNodes[i].Attributes["src"].Value);
+                DownloadableFile file = new() { FileName = i, OutputPath = comicPath, Uri = imageUri };
                 batch[i] = file;
             }
 

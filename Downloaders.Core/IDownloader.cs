@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD
+namespace Downloaders.Core
 {
     /// <summary>
     /// Represents a Comic Downloader.

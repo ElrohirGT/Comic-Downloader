@@ -1,4 +1,4 @@
-﻿using Comic_Downloader.CMD.ComicsUriProviders;
+﻿using Downloaders.Core.UriProviders.ComicsUriProviders;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD
+namespace Downloaders.Core
 {
     /// <summary>
     /// Basic Implementation of a <see cref="IDownloader"/>.
@@ -60,7 +60,7 @@ namespace Comic_Downloader.CMD
         /// <summary>
         /// Event that fires every time an image is downloaded. Contains information about the current downloads.
         /// </summary>
-        public event Action<DownloadReportEventArgs> DownloadReport;
+        public event Action<DownloadReportEventArgs>? DownloadReport;
 
         /// <summary>
         /// Downloads a bunch of comics from the urls,
@@ -94,6 +94,7 @@ namespace Comic_Downloader.CMD
                 {
                     try
                     {
+                        file.OutputPath ??= outputPath;
                         await DownloadFileAsync(file).ConfigureAwait(false);
                     }
                     catch (Exception e)
@@ -105,7 +106,7 @@ namespace Comic_Downloader.CMD
             return errors.ToArray();
         }
 
-        private string ConstructFilePath(string uriWithoutQuery, object fileName, string comicPath)
+        private static string ConstructFilePath(string uriWithoutQuery, object fileName, string comicPath)
         {
             fileName ??= Path.GetFileName(uriWithoutQuery);
             fileName = BaseResourceUriProvider.SanitizeFileName(fileName);
@@ -124,7 +125,7 @@ namespace Comic_Downloader.CMD
             {
                 Directory.CreateDirectory(downloadableFile.OutputPath);
 
-                // Downloading the file via streams because it has better performance
+                //INFO: Downloading the file via streams because it has better performance with large files
                 using var imageStream = await _httpClient.GetStreamAsync(downloadableFile.Uri).ConfigureAwait(false);
                 using FileStream outputStream = File.Create(path);
 
@@ -141,19 +142,17 @@ namespace Comic_Downloader.CMD
             }
         }
 
-        private IResourceUriProvider GetDownloader(Uri url)
+        private IResourceUriProvider? GetDownloader(Uri url)
         {
             var host = url.Host;
-            if (_registeredProviders.TryGetValue(host, out IResourceUriProvider downloader))
-                return downloader;
-            return null;
+            return _registeredProviders.TryGetValue(host, out var downloader) ? downloader : null;
         }
 
         private async Task<IAsyncEnumerable<DownloadableFile>> GetImageUris(Uri uri, string mainPath)
         {
-            IResourceUriProvider uriProvider = GetDownloader(uri);
+            IResourceUriProvider? uriProvider = GetDownloader(uri);
             if (uriProvider is null)
-                throw new NotSupportedException($"{uri} is not supported!");
+                throw new NotSupportedException($"{uri.Host} is not supported!");
             int numberOfImages = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
             Interlocked.Add(ref _totalImageCount, numberOfImages);
 

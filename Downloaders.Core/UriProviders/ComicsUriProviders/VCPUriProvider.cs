@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Comic_Downloader.CMD.ComicsUriProviders
+namespace Downloaders.Core.UriProviders.ComicsUriProviders
 {
     /// <summary>
     /// <see cref="IResourceUriProvider"/> implementation for the <see href="vercomicsporno.com"/> host.
     /// </summary>
-    public sealed class VCPUriProvider : BaseResourceUriProvider
+    public sealed class VCPUriProvider : BaseComicUriProvider
     {
         public override async Task<int> GetNumberOfItems(Uri uri)
         {
@@ -32,8 +32,8 @@ namespace Comic_Downloader.CMD.ComicsUriProviders
 
             for (int i = 0; i < imageNodes.Count; i++)
             {
-                Uri imageUri = new Uri(imageNodes[i].Attributes["src"].Value);
-                DownloadableFile file = new DownloadableFile() { FileName = i, OutputPath = comicPath, Uri = imageUri };
+                Uri imageUri = new(imageNodes[i].Attributes["src"].Value);
+                DownloadableFile file = new() { FileName = i, OutputPath = comicPath, Uri = imageUri };
                 batch[i] = file;
             }
 
