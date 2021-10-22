@@ -29,12 +29,12 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
 
             //INFO: Getting the uris is faster in this page like in the VCPUriProvider
             DownloadableFile[] batch = new DownloadableFile[imageNodes.Length];
-            for (int i = 0; i < imageNodes.Length; i++)
+            Parallel.For(0, imageNodes.Length, (int i) =>
             {
                 Uri imageUri = new(imageNodes[i].Attributes["src"].Value);
                 DownloadableFile file = new() { FileName = i, OutputPath = comicPath, Uri = imageUri };
                 batch[i] = file;
-            }
+            });
 
             foreach (var file in batch)
                 yield return file;

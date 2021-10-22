@@ -10,32 +10,31 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
     /// </summary>
     public sealed class VCPUriProvider : BaseComicUriProvider
     {
+        private HtmlWeb _web = new();
+
         public override async Task<int> GetNumberOfItems(Uri uri)
         {
-            var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
+            HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
             HtmlNodeCollection imageNodes = GetImages(document);
             return imageNodes.Count;
         }
 
         public override async IAsyncEnumerable<DownloadableFile> GetUris(Uri uri, string mainPath)
         {
-            var web = new HtmlWeb();
-            HtmlDocument document = await web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
-
+            HtmlDocument document = await _web.LoadFromWebAsync(uri.AbsoluteUri).ConfigureAwait(false);
             string title = document.DocumentNode.SelectSingleNode(@"//h1[@class=""titl""]").InnerText;
-            string comicPath = ConstructComicPath(mainPath, title);
 
+            string comicPath = ConstructComicPath(mainPath, title);
             var imageNodes = GetImages(document);
+
             //INFO: Getting uris from this web page is faster so the batch will contain every image of the comic
             DownloadableFile[] batch = new DownloadableFile[imageNodes.Count];
-
-            for (int i = 0; i < imageNodes.Count; i++)
+            Parallel.For(0, imageNodes.Count, (int index) =>
             {
-                Uri imageUri = new(imageNodes[i].Attributes["src"].Value);
-                DownloadableFile file = new() { FileName = i, OutputPath = comicPath, Uri = imageUri };
-                batch[i] = file;
-            }
+                Uri imageUri = new(imageNodes[index].Attributes["src"].Value);
+                DownloadableFile file = new() { FileName = index, OutputPath = comicPath, Uri = imageUri };
+                batch[index] = file;
+            });
 
             foreach (var file in batch)
                 yield return file;

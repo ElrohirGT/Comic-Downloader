@@ -42,9 +42,9 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
                 //INFO: This way all image links from a page will be released at the same time.
                 using BlockingCollection<DownloadableFile> batch = new(imgLinksNodes.Count);
 
-                await imgLinksNodes.ForEachParallelAsync(async imgLinkNode =>
+                await imgLinksNodes.ForParallelAsync(async (int index, HtmlNode imgLinkNode) =>
                 {
-                    int filename = imageCount + imgLinksNodes.IndexOf(imgLinkNode);
+                    int filename = imageCount + index;
                     HtmlDocument imgDoc = await _web.LoadFromWebAsync(imgLinkNode.Attributes["href"].Value).ConfigureAwait(false);
 
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");

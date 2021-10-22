@@ -115,6 +115,19 @@
             <param name="scheduler">A custom task scheduler, if this is null the default will be used.</param>
             <returns>A task that completes once all executions have finished for each element.</returns>
         </member>
+        <member name="M:Downloaders.Core.ExtensionMethods.ForParallelAsync``1(System.Collections.Generic.IEnumerable{``0},System.Func{System.Int32,``0,System.Threading.Tasks.Task},System.Int32,System.Threading.Tasks.TaskScheduler)">
+            <summary>
+            Iterates over each element in the <paramref name="source"/>.
+            Where each execution may run in parallel and in an async manner.
+            It also provides the index of the element that is being iterated over.
+            </summary>
+            <typeparam name="T">The type of the argument that will be passed to each execution.</typeparam>
+            <param name="source">The <see cref="T:System.Collections.Generic.IEnumerable`1"/> to loop through</param>
+            <param name="body">The action that will be executed for each item in the <paramref name="source"/>.</param>
+            <param name="maxDegreeOfParallelism">The maximum of executions that will be done concurrently.</param>
+            <param name="scheduler">A custom task scheduler, if this is null the default will be used.</param>
+            <returns>A task that completes once all executions have finished for each element.</returns>
+        </member>
         <member name="T:Downloaders.Core.IDownloader">
             <summary>
             Represents a Comic Downloader.

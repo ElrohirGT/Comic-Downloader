@@ -8,7 +8,7 @@ namespace Downloaders.Core
     public struct DownloadableFile
     {
         /// <summary>
-        /// The that will be given to the file once it's downloaded.
+        /// The that will be given to the file once it's downloaded, this name shouldn't contain the extension.
         /// If it's null, the filename from the uri will be used instead.
         /// </summary>
         public object FileName { get; set; }
