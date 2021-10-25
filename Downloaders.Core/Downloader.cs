@@ -1,4 +1,5 @@
 ﻿using Downloaders.Core.UriProviders.ComicsUriProviders;
+using Downloaders.Core.UriProviders.NewgroundsUriProviders;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -39,7 +40,8 @@ namespace Downloaders.Core
                  {
                      { "vercomicsporno.com", new VCPUriProvider() },
                      { "e-hentai.org", new EHentaiOrgUriProvider() },
-                     { "vermangasporno.com", new VMPUriProvider() }
+                     { "vermangasporno.com", new VMPUriProvider() },
+                     { "www.newgrounds.com", new NewgroundsUriProvider() }
                  })
         { }
 
@@ -76,7 +78,6 @@ namespace Downloaders.Core
             _currentDownloadedImages = 0;
             _totalImageCount = 0;
 
-            using BlockingCollection<IAsyncEnumerable<DownloadableFile>> fileEnumerables = new();
             UnboundedChannelOptions options = new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true };
             var channel = Channel.CreateUnbounded<DownloadableFile>(options);
 
@@ -113,7 +114,7 @@ namespace Downloaders.Core
             return errors.ToArray();
         }
 
-        private static string ConstructFilePath(string uriWithoutQuery, object fileName, string comicPath)
+        private static string ConstructFilePath(string uriWithoutQuery, object? fileName, string comicPath)
         {
             fileName ??= Path.GetFileName(uriWithoutQuery);
             fileName = BaseResourceUriProvider.SanitizeFileName(fileName);

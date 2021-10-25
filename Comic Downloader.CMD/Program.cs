@@ -29,7 +29,8 @@ namespace Comic_Downloader.CMD
             ShowVersion(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
             Console.Write("Done Path: ");
-            string outputPath = Console.ReadLine().Trim();
+            string lineRead = Console.ReadLine().Trim();
+            string outputPath = string.IsNullOrEmpty(lineRead) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lineRead;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 outputPath = Regex.Unescape(outputPath);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -81,16 +82,20 @@ namespace Comic_Downloader.CMD
 
             //List<Uri> uris = new List<Uri>()
             //{
-            //    new Uri("https://e-hentai.org/g/2017266/d916aea2de/"),
-            //    new Uri("https://vermangasporno.com/doujin/33515.html"),
-            //    new Uri("https://vercomicsporno.com/cherry-road-7-original-vcp"),
-            //    new Uri("https://e-hentai.org/g/2017115/cb506df526/"),
-            //    new Uri("https://vercomicsporno.com/hot-sauna-with-hinata-and-nereidas-mom-original-vcp"),
-            //    new Uri("https://vercomicsporno.com/incognitymous-sultry-summer-2"),
-            //    new Uri("https://e-hentai.org/g/2039222/4086a69148/"),
-            //    new Uri("https://vercomicsporno.com/incognitymous-cataratas-lujuriosas-2"),
-            //    //new Uri("https://e-hentai.org/g/2017110/463359c6ce/"),
-            //    new Uri("https://e-hentai.org/g/1809818/04dc69cf64/")
+            //new Uri("https://e-hentai.org/g/2017266/d916aea2de/"),
+            //new Uri("https://vermangasporno.com/doujin/33515.html"),
+            //new Uri("https://vercomicsporno.com/cherry-road-7-original-vcp"),
+            //new Uri("https://e-hentai.org/g/2017115/cb506df526/"),
+            //new Uri("https://vercomicsporno.com/hot-sauna-with-hinata-and-nereidas-mom-original-vcp"),
+            //new Uri("https://vercomicsporno.com/incognitymous-sultry-summer-2"),
+            //new Uri("https://e-hentai.org/g/2039222/4086a69148/"),
+            //new Uri("https://vercomicsporno.com/incognitymous-cataratas-lujuriosas-2"),
+            ////new Uri("https://e-hentai.org/g/2017110/463359c6ce/"),
+            //new Uri("https://e-hentai.org/g/1809818/04dc69cf64/")
+            //new Uri("https://www.newgrounds.com/portal/view/765377"),
+            //new Uri("https://www.newgrounds.com/portal/view/819297"),
+            //new Uri("https://www.newgrounds.com/art/view/diives/heketa-s-husband-treat-teaser"),
+            //new Uri("https://www.newgrounds.com/art/view/lewdua/alice-2")
             //};
             //string outputPath = @"D:\elroh\Documents\TestsDownloads2";
 

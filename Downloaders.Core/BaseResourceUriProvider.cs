@@ -18,6 +18,11 @@ namespace Downloaders.Core
                 RegexOptions.Compiled
             );
 
+        ~BaseResourceUriProvider()
+        {
+            Dispose(false);
+        }
+
         /// <summary>
         /// Removes all invalid characters from the provided filename.
         /// If a null filename is provided, and empty string is returned.
@@ -27,8 +32,18 @@ namespace Downloaders.Core
         public static string SanitizeFileName(object fileName)
             => INVALID_CHARS_REGEX.Replace(fileName?.ToString() ?? string.Empty, string.Empty);
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         public abstract Task<int> GetNumberOfItems(Uri uri);
 
         public abstract Task GetUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer);
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 }

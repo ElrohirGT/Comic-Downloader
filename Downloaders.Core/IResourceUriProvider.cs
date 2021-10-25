@@ -7,7 +7,7 @@ namespace Downloaders.Core
     /// <summary>
     /// Encapsulates all the methods required to download a resource from one online host.
     /// </summary>
-    public interface IResourceUriProvider
+    public interface IResourceUriProvider : IDisposable
     {
         /// <summary>
         /// Get's how many items will be downloaded.
