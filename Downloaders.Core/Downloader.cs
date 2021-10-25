@@ -60,10 +60,21 @@ namespace Downloaders.Core
             _maxItems = maxItems;
         }
 
+        ~Downloader()
+        {
+            Dispose(false);
+        }
+
         /// <summary>
         /// Event that fires every time an image is downloaded. Contains information about the current downloads.
         /// </summary>
         public event Action<DownloadReportEventArgs>? DownloadReport;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Downloads a bunch of comics from the urls,
@@ -101,7 +112,7 @@ namespace Downloaders.Core
             {
                 try
                 {
-                    await GetImageUris(uri, outputPath, channel.Writer).ConfigureAwait(false);
+                    await GetItemsUris(uri, outputPath, channel.Writer).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -121,6 +132,13 @@ namespace Downloaders.Core
             string fileExtension = Path.GetExtension(uriWithoutQuery);
 
             return Path.Combine(comicPath, $"{fileName}{fileExtension}");
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+                foreach (var item in _registeredProviders.Values)
+                    item.Dispose();
         }
 
         private async Task DownloadFileAsync(DownloadableFile downloadableFile)
@@ -156,29 +174,36 @@ namespace Downloaders.Core
             return _registeredProviders.TryGetValue(host, out var downloader) ? downloader : null;
         }
 
-        private async Task GetImageUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer)
+        private async Task GetItemsUris(Uri uri, string mainPath, ChannelWriter<DownloadableFile> writer)
         {
             IResourceUriProvider? uriProvider = GetDownloader(uri);
             if (uriProvider is null)
                 throw new NotSupportedException($"{uri.Host} is not supported!");
-            int numberOfImages = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
-            Interlocked.Add(ref _totalImageCount, numberOfImages);
+            int numberOfItems = await uriProvider.GetNumberOfItems(uri).ConfigureAwait(false);
+            Interlocked.Add(ref _totalImageCount, numberOfItems);
+            OnDownloadReport();
 
             await uriProvider.GetUris(uri, mainPath, writer).ConfigureAwait(false);
         }
 
-        private void OnFileDownloaded()
+        private void OnDownloadReport()
         {
-            //INFO: Is locking so the events are invoked one after the other
+            //INFO: locking is used so the events are invoked one after the other
             lock (_lock)
             {
                 DownloadReport?.Invoke(new DownloadReportEventArgs()
                 {
-                    //INFO: Interlocked is used just in case a later refactoring uses this variable.
-                    CurrentCount = Interlocked.Increment(ref _currentDownloadedImages),
+                    CurrentCount = _currentDownloadedImages,
                     TotalCount = _totalImageCount
                 });
             }
+        }
+
+        private void OnFileDownloaded()
+        {
+            //INFO: Interlocked is used just in case a later refactoring uses this variable.
+            Interlocked.Increment(ref _currentDownloadedImages);
+            OnDownloadReport();
         }
     }
 }

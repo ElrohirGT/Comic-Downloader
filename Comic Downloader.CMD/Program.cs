@@ -28,7 +28,7 @@ namespace Comic_Downloader.CMD
             ShowTitle(_title);
             ShowVersion(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
-            Console.Write("Done Path: ");
+            Console.Write("Output Path: ");
             string lineRead = Console.ReadLine().Trim();
             string outputPath = string.IsNullOrEmpty(lineRead) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : lineRead;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -90,7 +90,6 @@ namespace Comic_Downloader.CMD
             //new Uri("https://vercomicsporno.com/incognitymous-sultry-summer-2"),
             //new Uri("https://e-hentai.org/g/2039222/4086a69148/"),
             //new Uri("https://vercomicsporno.com/incognitymous-cataratas-lujuriosas-2"),
-            ////new Uri("https://e-hentai.org/g/2017110/463359c6ce/"),
             //new Uri("https://e-hentai.org/g/1809818/04dc69cf64/")
             //new Uri("https://www.newgrounds.com/portal/view/765377"),
             //new Uri("https://www.newgrounds.com/portal/view/819297"),
@@ -99,7 +98,7 @@ namespace Comic_Downloader.CMD
             //};
             //string outputPath = @"D:\elroh\Documents\TestsDownloads2";
 
-            IDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
+            using IDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
             SubDivision();
             LogSuccessMessage("Starting Downloads...");
 

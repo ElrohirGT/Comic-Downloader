@@ -8,7 +8,7 @@ namespace Downloaders.Core
     /// Represents a Comic Downloader.
     /// Encapsulates all the logic to download comics from multiple urls and saves the images to the specified path.
     /// </summary>
-    public interface IDownloader
+    public interface IDownloader : IDisposable
     {
         /// <summary>
         /// Event that contains download information of the current process.

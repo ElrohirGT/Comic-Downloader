@@ -8,13 +8,13 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
     internal class NewgroundsResponse
     {
         public string? Author { get; set; }
-        public Dictionary<string, NewgroundsResource[]>? Sources { get; set; }
+        public Dictionary<string, NewgroundsSource[]>? Sources { get; set; }
         public string? Title { get; set; }
+    }
 
-        internal class NewgroundsResource
-        {
-            public string? Src { get; set; }
-        }
+    internal class NewgroundsSource
+    {
+        public string? Src { get; set; }
     }
 
     internal class NewGroundsVideoFileProvider : INewgroundsFileProvider
@@ -22,9 +22,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
         private readonly NewgroundsResponse? _response;
 
         public NewGroundsVideoFileProvider(string htmlResponse)
-        {
-            _response = JsonConvert.DeserializeObject<NewgroundsResponse>(htmlResponse);
-        }
+            => _response = JsonConvert.DeserializeObject<NewgroundsResponse>(htmlResponse);
 
         public Task<DownloadableFile> GetFile()
         {
@@ -36,8 +34,8 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
                 FileName = BaseResourceUriProvider.SanitizeFileName($"[{_response.Author}] {_response.Title}")
             };
 
-            (int Resolution, NewgroundsResponse.NewgroundsResource[] Source)? previous = null;
-            foreach (KeyValuePair<string, NewgroundsResponse.NewgroundsResource[]> item in _response.Sources)
+            (int Resolution, NewgroundsSource[] Source)? previous = null;
+            foreach (KeyValuePair<string, NewgroundsSource[]> item in _response.Sources)
             {
                 int resolution = int.Parse(item.Key[0..^1]);
                 if (previous is null || previous.Value.Resolution < resolution)

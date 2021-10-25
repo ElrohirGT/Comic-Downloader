@@ -204,5 +204,12 @@
             Used for binding the js code with the c# code
             </summary>
         </member>
+        <member name="M:Downloaders.Core.UriProviders.NewgroundsUriProviders.NewgroundsFileUriProviderFactory.VideoResponseReceiver.SendResponse(System.String)">
+            <summary>
+            This functions is called from the js code,
+            in the js code camel case is used, so this will be called with sendRedponse.
+            </summary>
+            <param name="response">The response text of the request</param>
+        </member>
     </members>
 </doc>

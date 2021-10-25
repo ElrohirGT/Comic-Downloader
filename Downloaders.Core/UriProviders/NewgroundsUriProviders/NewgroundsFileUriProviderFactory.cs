@@ -15,7 +15,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
         public static Task<INewgroundsFileProvider> GetProvider(ChromiumWebBrowser browser)
         {
             TaskCompletionSource<INewgroundsFileProvider> tcs = new();
-            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
+            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));//INFO: Cancel the operation if 20 seconds have passed.
 
             browser.LoadingStateChanged += PageLoaded;
             async void PageLoaded(object? sender, LoadingStateChangedEventArgs e)
@@ -31,10 +31,15 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
 
                 if (isVideo)
                 {
+                    //INFO: This calls the ResponseReceived method below
                     browser.JavascriptObjectRepository.Register("videoResponseReceiver", new VideoResponseReceiver { ResponseAction = ResponseReceived });
                     await browser.EvaluateScriptAsync(INTERCEPT_AJAX_CALL_SCRIPT);
+
                     string movieId = browser.Address.Split('/')[^1];
-                    string script = $@"ngutils.components.video.global_player.initialized = true; ngutils.components.video.global_player.loadMovieByID({movieId})";
+                    string script = $@"
+                        ngutils.components.video.global_player.initialized = true;
+                        ngutils.components.video.global_player.loadMovieByID({movieId})
+                    ";
                     await browser.EvaluateScriptAsync(script);
                 }
                 else if (isImage)
@@ -62,9 +67,14 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
         {
             public Action<string>? ResponseAction { get; set; }
 
-            public void SendResponse(string html)
+            /// <summary>
+            /// This functions is called from the js code,
+            /// in the js code camel case is used, so this will be called with sendRedponse.
+            /// </summary>
+            /// <param name="response">The response text of the request</param>
+            public void SendResponse(string response)
             {
-                ResponseAction?.Invoke(html);
+                ResponseAction?.Invoke(response);
             }
         }
     }
