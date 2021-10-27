@@ -8,7 +8,9 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
 {
     internal sealed class NewgroundsUriProvider : BaseResourceUriProvider
     {
+        //INFO: The browser throws an exception eventually if more than 1 browser is used.
         private const int MAX_BROWSERS_CONCURRENTLY = 1;
+
         private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(MAX_BROWSERS_CONCURRENTLY);
 
         public override Task<int> GetNumberOfItems(Uri uri) => Task.FromResult(1);
