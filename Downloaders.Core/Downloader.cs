@@ -1,4 +1,6 @@
-﻿using Downloaders.Core.UriProviders.ComicsUriProviders;
+﻿using CefSharp;
+using CefSharp.OffScreen;
+using Downloaders.Core.UriProviders.ComicsUriProviders;
 using Downloaders.Core.UriProviders.NewgroundsUriProviders;
 using System;
 using System.Collections.Concurrent;
@@ -58,6 +60,13 @@ namespace Downloaders.Core
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _registeredProviders = registeredProviders ?? throw new ArgumentNullException(nameof(registeredProviders));
             _maxItems = maxItems;
+
+            var settings = new CefSettings
+            {
+                LogSeverity = LogSeverity.Disable,
+                CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
+            };
+            Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
         }
 
         ~Downloader()
@@ -137,8 +146,11 @@ namespace Downloaders.Core
         private void Dispose(bool disposing)
         {
             if (disposing)
+            {
+                Cef.Shutdown();
                 foreach (var item in _registeredProviders.Values)
                     item.Dispose();
+            }
         }
 
         private async Task DownloadFileAsync(DownloadableFile downloadableFile)

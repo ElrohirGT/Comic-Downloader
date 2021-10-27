@@ -24,7 +24,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
         public NewGroundsVideoFileProvider(string htmlResponse)
             => _response = JsonConvert.DeserializeObject<NewgroundsResponse>(htmlResponse);
 
-        public Task<DownloadableFile> GetFile()
+        public async Task<DownloadableFile> GetFile()
         {
             if (_response is null || _response.Sources is null)
                 throw new NotSupportedException("The newgrounds response has changed format!");
@@ -44,7 +44,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
 
             file.Uri = new Uri(previous?.Source[0].Src ?? string.Empty);
 
-            return Task.FromResult(file);
+            return file;
         }
     }
 }
