@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,8 +22,8 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
     {
         private readonly NewgroundsResponse? _response;
 
-        public NewGroundsVideoFileProvider(string htmlResponse)
-            => _response = JsonConvert.DeserializeObject<NewgroundsResponse>(htmlResponse);
+        public NewGroundsVideoFileProvider(string apiResponse)
+            => _response = JsonConvert.DeserializeObject<NewgroundsResponse>(apiResponse);
 
         public async Task<DownloadableFile> GetFile()
         {

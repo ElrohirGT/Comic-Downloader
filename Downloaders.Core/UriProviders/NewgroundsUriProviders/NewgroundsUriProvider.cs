@@ -1,4 +1,5 @@
-﻿using CefSharp.OffScreen;
+﻿using PuppeteerSharp;
+
 using System;
 using System.Threading;
 using System.Threading.Channels;
@@ -21,8 +22,13 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
             {
                 await _semaphore.WaitAsync().ConfigureAwait(false);
 
-                using var browser = new ChromiumWebBrowser(uri.AbsoluteUri);
-                INewgroundsFileProvider provider = await NewgroundsFileUriProviderFactory.GetProvider(browser).ConfigureAwait(false);
+                await new BrowserFetcher().DownloadAsync().ConfigureAwait(false);
+                LaunchOptions options = new() { Headless = true };
+                using var browser = await Puppeteer.LaunchAsync(options).ConfigureAwait(false);
+
+                var page = await browser.NewPageAsync();
+                await page.GoToAsync(uri.AbsoluteUri, WaitUntilNavigation.DOMContentLoaded);
+                INewgroundsFileProvider provider = await NewgroundsFileUriProviderFactory.GetProvider(page).ConfigureAwait(false);
 
                 DownloadableFile file = await provider.GetFile().ConfigureAwait(false);
                 await writer.WriteAsync(file).ConfigureAwait(false);

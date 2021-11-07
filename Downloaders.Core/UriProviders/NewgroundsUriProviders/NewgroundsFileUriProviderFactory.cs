@@ -1,5 +1,5 @@
-﻿using CefSharp;
-using CefSharp.OffScreen;
+﻿using PuppeteerSharp;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,56 +8,39 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
 {
     internal class NewgroundsFileUriProviderFactory
     {
-        private const string INTERCEPT_AJAX_CALL_SCRIPT = "(async function(){await CefSharp.BindObjectAsync('videoResponseReceiver');var proxied=window.XMLHttpRequest.prototype.send;window.XMLHttpRequest.prototype.send=function(){console.log(arguments);var pointer=this;var intervalId=window.setInterval(function(){if(pointer.readyState!=4){return}videoResponseReceiver.sendResponse(pointer.responseText);clearInterval(intervalId)},1);return proxied.apply(this,[].slice.call(arguments))}})();";
+        private const string GET_VIDEO_API_RESPONSE = "return new Promise((resolve,reject)=>{(async function(){var proxied=window.XMLHttpRequest.prototype.send;window.XMLHttpRequest.prototype.send=function(){console.log(arguments);var pointer=this;var intervalId=window.setInterval(function(){if(pointer.readyState!=4){return}resolve(pointer.responseText)clearInterval(intervalId)},1);return proxied.apply(this,[].slice.call(arguments))}})();ngutils.components.video.global_player.initialized=true;ngutils.components.video.global_player.loadMovieByID({0})});";
         private const string IS_IMAGE_SCRIPT = "document.querySelectorAll('div.image').length == 1";
+
         private const string IS_VIDEO_SCRIPT = "document.querySelectorAll('div.play-wrapper').length == 1";
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(20);
 
-        public static Task<INewgroundsFileProvider> GetProvider(ChromiumWebBrowser browser)
+        public static async Task<INewgroundsFileProvider> GetProvider(Page page)
+
         {
+            //INFO: Cancel the operation if 20 seconds have passed.
+            using CancellationTokenSource cts = new(TIMEOUT);
             TaskCompletionSource<INewgroundsFileProvider> tcs = new();
-            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));//INFO: Cancel the operation if 20 seconds have passed.
 
-            browser.LoadingStateChanged += PageLoaded;
-            async void PageLoaded(object? sender, LoadingStateChangedEventArgs e)
+            bool isVideo = await page.EvaluateExpressionAsync<bool>(IS_VIDEO_SCRIPT);
+            bool isImage = await page.EvaluateExpressionAsync<bool>(IS_IMAGE_SCRIPT);
+
+            if (isImage)
             {
-                if (e.IsLoading)
-                    return;
-
-                var isVideoResponse = await browser.EvaluateScriptAsync(IS_VIDEO_SCRIPT);
-                var isImageResponse = await browser.EvaluateScriptAsync(IS_IMAGE_SCRIPT);
-
-                bool isVideo = bool.Parse(isVideoResponse.Result?.ToString() ?? bool.FalseString);
-                bool isImage = bool.Parse(isImageResponse.Result?.ToString() ?? bool.FalseString);
-
-                if (isVideo)
-                {
-                    //INFO: This calls the ResponseReceived method below
-                    browser.JavascriptObjectRepository.Register("videoResponseReceiver", new VideoResponseReceiver { ResponseAction = ResponseReceived });
-                    await browser.EvaluateScriptAsync(INTERCEPT_AJAX_CALL_SCRIPT);
-
-                    string movieId = browser.Address.Split('/')[^1];
-                    string script = $@"
-                        ngutils.components.video.global_player.initialized = true;
-                        ngutils.components.video.global_player.loadMovieByID({movieId})
-                    ";
-                    await browser.EvaluateScriptAsync(script);
-                }
-                else if (isImage)
-                {
-                    string pageHtml = await browser.GetBrowser().MainFrame.GetSourceAsync();
-                    tcs.SetResult(new NewGroundsImageFileProvider(pageHtml));
-                }
+                string pageHtml = await page.GetContentAsync();
+                tcs.SetResult(new NewGroundsImageFileProvider(pageHtml));
             }
-            void ResponseReceived(string html)
+            else if (isVideo)
             {
-                if (string.IsNullOrEmpty(html))
-                    tcs.SetException(new ArgumentNullException("The provided response is null or empty"));
-                tcs.SetResult(new NewGroundsVideoFileProvider(html));
+                string movieId = page.Url.Split('/')[^1];
+                string script = $"new Promise((e,o)=>{{!async function(){{var o=window.XMLHttpRequest.prototype.send;window.XMLHttpRequest.prototype.send=function(){{console.log(arguments);var t=this,n=window.setInterval(function(){{4==t.readyState&&(e(t.responseText),clearInterval(n))}},1);return o.apply(this,[].slice.call(arguments))}}}}(),ngutils.components.video.global_player.initialized=!0,ngutils.components.video.global_player.loadMovieByID({movieId})}});";
+                string apiResponse = await page.EvaluateExpressionAsync<string>(script);
+                tcs.SetResult(new NewGroundsVideoFileProvider(apiResponse));
             }
 
             while (!tcs.Task.IsCompleted)
-                cts.Token.ThrowIfCancellationRequested();
-            return tcs.Task;
+                if (cts.Token.IsCancellationRequested)
+                    throw new TimeoutException($"TIMEOUT: The url for the video could not be found within: {TIMEOUT}");
+            return tcs.Task.Result;
         }
 
         /// <summary>
