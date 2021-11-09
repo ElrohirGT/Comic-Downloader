@@ -23,6 +23,12 @@ namespace Downloaders.Core
         /// The uri of the resource that will be downloaded.
         /// This can't be null.
         /// </summary>
-        public Uri Uri { get; set; }
+        public Uri FileUri { get; set; }
+
+        /// <summary>
+        /// The uri of the page where the <see cref="FileUri"/> was retreived
+        /// This is the uri the user inputted.
+        /// </summary>
+        public Uri PageUri { get; set; }
     }
 }

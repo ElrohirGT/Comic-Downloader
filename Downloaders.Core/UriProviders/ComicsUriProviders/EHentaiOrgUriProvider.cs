@@ -48,7 +48,7 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri imageUri = new(imgNode.Attributes["src"].Value);
 
-                    DownloadableFile file = new() { FileName = filename, OutputPath = comicPath, Uri = imageUri };
+                    DownloadableFile file = new() { FileName = filename, OutputPath = comicPath, FileUri = imageUri, PageUri = uri };
                     await writer.WriteAsync(file).ConfigureAwait(false);
                 }).ConfigureAwait(false);
                 imageCount += imgLinksNodes.Count;

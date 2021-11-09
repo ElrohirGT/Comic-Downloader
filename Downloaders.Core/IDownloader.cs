@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 namespace Downloaders.Core
 {
     /// <summary>
-    /// Represents a Comic Downloader.
-    /// Encapsulates all the logic to download comics from multiple urls and saves the images to the specified path.
+    /// Represents a Downloader.
+    /// Encapsulates all the logic to download files from multiple urls and saves them to the specified path.
     /// </summary>
     public interface IDownloader : IDisposable
     {
@@ -16,11 +16,11 @@ namespace Downloaders.Core
         event Action<DownloadReportEventArgs> DownloadReport;
 
         /// <summary>
-        /// Downloads all the comics from the specified <paramref name="urls"/> if it recognizes them.
+        /// Downloads all the files from the specified <paramref name="uris"/> if it recognizes them.
         /// </summary>
-        /// <param name="urls">The array of urls of the comics.</param>
-        /// <param name="outputPath">The path where the comics folders will be created.</param>
-        /// <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
-        Task<string[]> DownloadComics(IEnumerable<Uri> urls, string outputPath);
+        /// <param name="uris">The array of urls of the files.</param>
+        /// <param name="outputPath">The path where the files will be downloaded.</param>
+        /// <returns>A dictionary with the errors encountered for each uri.</returns>
+        Task<IDictionary<Uri, ICollection<string>>> DownloadFiles(IEnumerable<Uri> uris, string outputPath);
     }
 }

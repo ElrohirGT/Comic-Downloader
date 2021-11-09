@@ -22,9 +22,10 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
             node = _doc.DocumentNode.SelectSingleNode(@"//div[@class=""pod-head""]//h2");
             var title = BaseResourceUriProvider.SanitizeFileName(node.InnerText);
 
-            DownloadableFile downloadableFile = new DownloadableFile
+            //INFO: The page uri is set by the NewgroundsUriProvider
+            DownloadableFile downloadableFile = new()
             {
-                Uri = uri,
+                FileUri = uri,
                 FileName = title
             };
             return Task.FromResult(downloadableFile);

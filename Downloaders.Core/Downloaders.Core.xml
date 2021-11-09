@@ -35,10 +35,16 @@
             It it's null, the user provided output path will be used.
             </summary>
         </member>
-        <member name="P:Downloaders.Core.DownloadableFile.Uri">
+        <member name="P:Downloaders.Core.DownloadableFile.FileUri">
             <summary>
             The uri of the resource that will be downloaded.
             This can't be null.
+            </summary>
+        </member>
+        <member name="P:Downloaders.Core.DownloadableFile.PageUri">
+            <summary>
+            The uri of the page where the <see cref="P:Downloaders.Core.DownloadableFile.FileUri"/> was retreived
+            This is the uri the user inputted.
             </summary>
         </member>
         <member name="T:Downloaders.Core.Downloader">
@@ -71,15 +77,6 @@
             <summary>
             Event that fires every time an image is downloaded. Contains information about the current downloads.
             </summary>
-        </member>
-        <member name="M:Downloaders.Core.Downloader.DownloadComics(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
-            <summary>
-            Downloads a bunch of comics from the urls,
-            this method is provided for allowing the download of multiple comics at a time.
-            </summary>
-            <param name="urls">The uris where the comic images are located.</param>
-            <param name="outputPath">The path where to download the comics.</param>
-            <returns>An array of errors. If there were no errors it's an empty array.</returns>
         </member>
         <member name="P:Downloaders.Core.DownloadReportEventArgs.CurrentCount">
             <summary>
@@ -130,8 +127,8 @@
         </member>
         <member name="T:Downloaders.Core.IDownloader">
             <summary>
-            Represents a Comic Downloader.
-            Encapsulates all the logic to download comics from multiple urls and saves the images to the specified path.
+            Represents a Downloader.
+            Encapsulates all the logic to download files from multiple urls and saves them to the specified path.
             </summary>
         </member>
         <member name="E:Downloaders.Core.IDownloader.DownloadReport">
@@ -139,13 +136,13 @@
             Event that contains download information of the current process.
             </summary>
         </member>
-        <member name="M:Downloaders.Core.IDownloader.DownloadComics(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
+        <member name="M:Downloaders.Core.IDownloader.DownloadFiles(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
             <summary>
-            Downloads all the comics from the specified <paramref name="urls"/> if it recognizes them.
+            Downloads all the files from the specified <paramref name="uris"/> if it recognizes them.
             </summary>
-            <param name="urls">The array of urls of the comics.</param>
-            <param name="outputPath">The path where the comics folders will be created.</param>
-            <returns>An array filled with all the errors. If there weren't any it's an empty array.</returns>
+            <param name="uris">The array of urls of the files.</param>
+            <param name="outputPath">The path where the files will be downloaded.</param>
+            <returns>A dictionary with the errors encountered for each uri.</returns>
         </member>
         <member name="T:Downloaders.Core.IResourceUriProvider">
             <summary>

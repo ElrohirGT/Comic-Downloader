@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
@@ -77,39 +78,34 @@ namespace Downloaders.Core
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Downloads a bunch of comics from the urls,
-        /// this method is provided for allowing the download of multiple comics at a time.
-        /// </summary>
-        /// <param name="urls">The uris where the comic images are located.</param>
-        /// <param name="outputPath">The path where to download the comics.</param>
-        /// <returns>An array of errors. If there were no errors it's an empty array.</returns>
-        public async Task<string[]> DownloadComics(IEnumerable<Uri> urls, string outputPath)
+        public async Task<IDictionary<Uri, ICollection<string>>> DownloadFiles(IEnumerable<Uri> uris, string outputPath)
         {
-            using BlockingCollection<string> errors = new();
+            ConcurrentDictionary<Uri, ConcurrentBag<string>> errors = new();
             _currentDownloadedImages = 0;
             _totalImageCount = 0;
 
-            UnboundedChannelOptions options = new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true };
+            UnboundedChannelOptions options = new() { SingleReader = true, SingleWriter = true };
             var channel = Channel.CreateUnbounded<DownloadableFile>(options);
 
-            var t = Task.Run(() =>
-            {
-                return channel.Reader.ReadAllAsync().ForEachParallelAsync(async (file) =>
-                {
-                    try
-                    {
-                        file.OutputPath ??= outputPath;
-                        await DownloadFileAsync(file).ConfigureAwait(false);
-                    }
-                    catch (Exception e)
-                    {
-                        errors.Add($"{e.Message}\n{e.InnerException?.Message}");
-                    }
-                }, _maxItems);
-            });
+            var downloadFilesTask = Task.Run(
+                () => channel.Reader.ReadAllAsync().ForEachParallelAsync(
+                    async (file) =>
+                        {
+                            try
+                            {
+                                file.OutputPath ??= outputPath;
+                                await DownloadFileAsync(file).ConfigureAwait(false);
+                            }
+                            catch (Exception e)
+                            {
+                                errors.TryAdd(file.PageUri, new ConcurrentBag<string>());
+                                errors[file.PageUri].Add($"{e.Message}\n{e.InnerException?.Message}");
+                            }
+                        }, _maxItems
+                    )
+                );
 
-            await urls.ForEachParallelAsync(async (uri) =>
+            await uris.ForEachParallelAsync(async (uri) =>
             {
                 try
                 {
@@ -117,13 +113,15 @@ namespace Downloaders.Core
                 }
                 catch (Exception e)
                 {
-                    errors.Add($"An error ocurred downloading: {uri}\n{e.Message}");
+                    errors.TryAdd(uri, new ConcurrentBag<string>());
+                    errors[uri].Add($"An error ocurred downloading: {uri}\n{e.Message}");
                 }
             }).ConfigureAwait(false);
 
             channel.Writer.Complete();
-            await t.ConfigureAwait(false);
-            return errors.ToArray();
+            await downloadFilesTask.ConfigureAwait(false);
+            //Casting each ConcurrentBag<string> into an IEnumerable<string>
+            return new Dictionary<Uri, ICollection<string>>(errors.Select(pair=> KeyValuePair.Create<Uri, ICollection<string>>(pair.Key, pair.Value.ToArray())));
         }
 
         private static string ConstructFilePath(string uriWithoutQuery, object? fileName, string comicPath)
@@ -147,7 +145,7 @@ namespace Downloaders.Core
         private async Task DownloadFileAsync(DownloadableFile downloadableFile)
         {
             //Sanitize directory path
-            string uriWithoutQuery = downloadableFile.Uri.GetLeftPart(UriPartial.Path);
+            string uriWithoutQuery = downloadableFile.FileUri.GetLeftPart(UriPartial.Path);
             string path = ConstructFilePath(uriWithoutQuery, downloadableFile.FileName, downloadableFile.OutputPath);
 
             try
@@ -155,7 +153,7 @@ namespace Downloaders.Core
                 Directory.CreateDirectory(downloadableFile.OutputPath);
 
                 //INFO: Downloading the file via streams because it has better performance with large files
-                using var imageStream = await _httpClient.GetStreamAsync(downloadableFile.Uri).ConfigureAwait(false);
+                using var imageStream = await _httpClient.GetStreamAsync(downloadableFile.FileUri).ConfigureAwait(false);
                 using FileStream outputStream = File.Create(path);
 
                 await imageStream.CopyToAsync(outputStream).ConfigureAwait(false);

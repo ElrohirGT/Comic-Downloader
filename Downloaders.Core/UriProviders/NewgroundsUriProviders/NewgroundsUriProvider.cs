@@ -31,6 +31,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
                 INewgroundsFileProvider provider = await NewgroundsFileUriProviderFactory.GetProvider(page).ConfigureAwait(false);
 
                 DownloadableFile file = await provider.GetFile().ConfigureAwait(false);
+                file.PageUri = uri;
                 await writer.WriteAsync(file).ConfigureAwait(false);
             }
             finally

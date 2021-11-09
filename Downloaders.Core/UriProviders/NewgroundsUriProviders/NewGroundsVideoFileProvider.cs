@@ -30,7 +30,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
             if (_response is null || _response.Sources is null)
                 throw new NotSupportedException("The newgrounds response has changed format!");
 
-            DownloadableFile file = new DownloadableFile
+            DownloadableFile file = new()
             {
                 FileName = BaseResourceUriProvider.SanitizeFileName($"[{_response.Author}] {_response.Title}")
             };
@@ -43,8 +43,8 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
                     previous = (resolution, item.Value);
             }
 
-            file.Uri = new Uri(previous?.Source[0].Src ?? string.Empty);
-
+            file.FileUri = new Uri(previous?.Source[0].Src ?? string.Empty);
+            //INFO: The page uri is set by the NewgroundsUriProvider
             return file;
         }
     }

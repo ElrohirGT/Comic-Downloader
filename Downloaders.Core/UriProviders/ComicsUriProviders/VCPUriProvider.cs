@@ -31,7 +31,7 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
             await imageNodes.ForParallelAsync(async (int index, HtmlNode imageNode) =>
             {
                 Uri imageUri = new(imageNode.Attributes["src"].Value);
-                DownloadableFile file = new() { FileName = index, OutputPath = comicPath, Uri = imageUri };
+                DownloadableFile file = new() { FileName = index, OutputPath = comicPath, FileUri = imageUri, PageUri = uri };
                 await writer.WriteAsync(file).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
