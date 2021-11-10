@@ -10,26 +10,26 @@ using Downloaders.Core;
 
 using static ConsoleUtilitiesLite.ConsoleUtilities;
 
-namespace Comic_Downloader.CMD
+namespace Comic_Downloader.CMD;
+
+internal class Program
 {
-    internal class Program
-    {
-        private const string LOG_FORMAT = "Progress: {0}/{1}";
-        private const int MAX_IMAGES_AT_A_TIME = 20;
+    private const string LOG_FORMAT = "Progress: {0}/{1}";
+    private const int MAX_IMAGES_AT_A_TIME = 15;
 
-        private static readonly HttpClient _httpClient = new();
+    private static readonly HttpClient _httpClient = new();
 
-        private static readonly string[] _title = new string[]
-                {
+    private static readonly string[] _title = new string[]
+            {
             "█▀▄ █▀█ █░█░█ █▄░█ █░░ █▀█ ▄▀█ █▀▄ █▀▀ █▀█",
             "█▄▀ █▄█ ▀▄▀▄▀ █░▀█ █▄▄ █▄█ █▀█ █▄▀ ██▄ █▀▄"
-        };
+    };
 
-        private static void Main()
-        {
-            Console.Clear();
-            ShowTitle(_title);
-            ShowVersion(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
+    private static void Main()
+    {
+        Console.Clear();
+        ShowTitle(_title);
+        ShowVersion(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
 #if !DEBUG
             Console.Write("Output Path: ");
@@ -85,7 +85,7 @@ namespace Comic_Downloader.CMD
             }
 #endif
 #if DEBUG
-            List<Uri> uris = new List<Uri>()
+        List<Uri> uris = new List<Uri>()
             {
                 new Uri("https://e-hentai.org/g/2017266/d916aea2de/"),
             new Uri("https://vermangasporno.com/doujin/33515.html"),
@@ -101,45 +101,44 @@ namespace Comic_Downloader.CMD
             //    new Uri("https://www.newgrounds.com/art/view/diives/heketa-s-husband-treat-teaser"),
             //    new Uri("https://www.newgrounds.com/art/view/lewdua/alice-2")
             };
-            string outputPath = @"D:\elroh\Documents\TestsDownloads2";
+        string outputPath = @"D:\elroh\Documents\TestsDownloads2";
 #endif
 
-            using IDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
-            SubDivision();
+        using IDownloader comicDownloader = new Downloader(_httpClient, MAX_IMAGES_AT_A_TIME);
+        SubDivision();
 
-            LogSuccessMessage("Starting Downloads...");
+        LogSuccessMessage("Starting Downloads...");
 
-            int previousLogLength = LogInfoMessage(string.Format(LOG_FORMAT, 0, 0));
-            int maxCount = 1;
-            comicDownloader.DownloadReport += (args) =>
-            {
-                ClearPreviousLog(previousLogLength);
-                previousLogLength = LogInfoMessage(LOG_FORMAT, args.CurrentCount, args.TotalCount);
-                maxCount = args.TotalCount;
-            };
+        int previousLogLength = LogInfoMessage(string.Format(LOG_FORMAT, 0, 0));
+        int maxCount = 1;
+        comicDownloader.DownloadReport += (args) =>
+        {
+            ClearPreviousLog(previousLogLength);
+            previousLogLength = LogInfoMessage(LOG_FORMAT, args.CurrentCount, args.TotalCount);
+            maxCount = args.TotalCount;
+        };
 
-            DateTime before = DateTime.Now;
-            IDictionary<Uri, ICollection<string>> errors = comicDownloader.DownloadFiles(uris, outputPath).Result;
-            DateTime after = DateTime.Now;
+        DateTime before = DateTime.Now;
+        IDictionary<Uri, ICollection<string>> errors = comicDownloader.DownloadFiles(uris, outputPath).Result;
+        DateTime after = DateTime.Now;
 
-            SubDivision();
-            LogInfoMessage($"Time: {after - before} -- Success Rate: {(1 - errors.Values.Sum(l=>l.Count) / Math.Max(maxCount, 1f)) * 100}%");
+        SubDivision();
+        LogInfoMessage($"Time: {after - before} -- Success Rate: {(1 - errors.Values.Sum(l => l.Count) / Math.Max(maxCount, 1f)) * 100}%");
+        Console.ReadLine();
+
+        if (errors.Count == 0)
+            LogSuccessMessage("NO ERRORS");
+        else
+        {
+            LogErrorMessage("ERRORS:");
+            foreach (var uriErrors in errors.Values)
+                foreach (var error in uriErrors)
+                    LogErrorMessage(error);
+
+            LogInfoMessage("Writing all uris with an error in the log file...");
+            File.WriteAllLines(Path.Combine(outputPath, "uris.txt"), errors.Keys.Select(uri => uri.ToString()));
+            LogInfoMessage("Finished!");
             Console.ReadLine();
-
-            if (errors.Count == 0)
-                LogSuccessMessage("NO ERRORS");
-            else
-            {
-                LogErrorMessage("ERRORS:");
-                foreach (var uriErrors in errors.Values)
-                    foreach (var error in uriErrors)
-                        LogErrorMessage(error);
-
-                LogInfoMessage("Writing all uris with an error in the log file...");
-                File.WriteAllLines(Path.Combine(outputPath, "uris.txt"), errors.Keys.Select(uri => uri.ToString()));
-                LogInfoMessage("Finished!");
-                Console.ReadLine();
-            }
         }
     }
 }
