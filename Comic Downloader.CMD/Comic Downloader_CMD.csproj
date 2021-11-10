@@ -6,6 +6,7 @@
     <RootNamespace>Comic_Downloader.CMD</RootNamespace>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <RuntimeIdentifiers>win10-x64;osx-x64;win-x86</RuntimeIdentifiers>
+    <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
