@@ -136,12 +136,13 @@
             Event that contains download information of the current process.
             </summary>
         </member>
-        <member name="M:Downloaders.Core.IDownloader.DownloadFiles(System.Collections.Generic.IEnumerable{System.Uri},System.String)">
+        <member name="M:Downloaders.Core.IDownloader.DownloadFiles(System.Collections.Generic.IEnumerable{System.Uri},System.String,System.Threading.Channels.Channel{Downloaders.Core.DownloadableFile})">
             <summary>
             Downloads all the files from the specified <paramref name="uris"/> if it recognizes them.
             </summary>
             <param name="uris">The array of urls of the files.</param>
             <param name="outputPath">The path where the files will be downloaded.</param>
+            <param name="channel">The channel that will serve as a communication device between threads.</param>
             <returns>A dictionary with the errors encountered for each uri.</returns>
         </member>
         <member name="T:Downloaders.Core.IResourceUriProvider">

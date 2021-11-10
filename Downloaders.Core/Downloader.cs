@@ -78,14 +78,14 @@ namespace Downloaders.Core
             GC.SuppressFinalize(this);
         }
 
-        public async Task<IDictionary<Uri, ICollection<string>>> DownloadFiles(IEnumerable<Uri> uris, string outputPath)
+        public async Task<IDictionary<Uri, ICollection<string>>> DownloadFiles(IEnumerable<Uri> uris, string outputPath, Channel<DownloadableFile>? channel = null)
         {
             ConcurrentDictionary<Uri, ConcurrentBag<string>> errors = new();
             _currentDownloadedImages = 0;
             _totalImageCount = 0;
 
             UnboundedChannelOptions options = new() { SingleReader = true, SingleWriter = true };
-            var channel = Channel.CreateUnbounded<DownloadableFile>(options);
+            channel ??= Channel.CreateUnbounded<DownloadableFile>(options);
 
             var downloadFilesTask = Task.Run(
                 () => channel.Reader.ReadAllAsync().ForEachParallelAsync(

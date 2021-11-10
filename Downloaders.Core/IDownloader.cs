@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Downloaders.Core
@@ -20,7 +21,8 @@ namespace Downloaders.Core
         /// </summary>
         /// <param name="uris">The array of urls of the files.</param>
         /// <param name="outputPath">The path where the files will be downloaded.</param>
+        /// <param name="channel">The channel that will serve as a communication device between threads.</param>
         /// <returns>A dictionary with the errors encountered for each uri.</returns>
-        Task<IDictionary<Uri, ICollection<string>>> DownloadFiles(IEnumerable<Uri> uris, string outputPath);
+        Task<IDictionary<Uri, ICollection<string>>> DownloadFiles(IEnumerable<Uri> uris, string outputPath, Channel<DownloadableFile>? channel = null);
     }
 }
