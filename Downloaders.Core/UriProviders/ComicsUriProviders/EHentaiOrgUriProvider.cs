@@ -11,6 +11,7 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
     public sealed class EHentaiOrgUriProvider : BaseComicUriProvider
     {
         private readonly HtmlWeb _web = new();
+        private readonly TimeSpan FILE_TIME_LIMIT = TimeSpan.FromMinutes(1.5);
 
         public override async Task<int> GetNumberOfItems(Uri uri)
         {
@@ -48,7 +49,7 @@ namespace Downloaders.Core.UriProviders.ComicsUriProviders
                     var imgNode = imgDoc.DocumentNode.SelectSingleNode(@"//img[@id=""img""]");
                     Uri imageUri = new(imgNode.Attributes["src"].Value);
 
-                    DownloadableFile file = new() { FileName = filename, OutputPath = comicPath, FileUri = imageUri, PageUri = uri };
+                    DownloadableFile file = new() { FileName = filename, OutputPath = comicPath, FileUri = imageUri, PageUri = uri, TimeLimit = FILE_TIME_LIMIT };
                     await writer.WriteAsync(file).ConfigureAwait(false);
                 }).ConfigureAwait(false);
                 imageCount += imgLinksNodes.Count;

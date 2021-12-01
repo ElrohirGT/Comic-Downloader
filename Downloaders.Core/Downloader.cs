@@ -145,6 +145,7 @@ namespace Downloaders.Core
         private async Task DownloadFileAsync(DownloadableFile downloadableFile)
         {
             //Sanitize directory path
+            CancellationTokenSource cts = new(downloadableFile.TimeLimit);
             string uriWithoutQuery = downloadableFile.FileUri.GetLeftPart(UriPartial.Path);
             string path = ConstructFilePath(uriWithoutQuery, downloadableFile.FileName, downloadableFile.OutputPath);
 
@@ -156,8 +157,15 @@ namespace Downloaders.Core
                 using var imageStream = await _httpClient.GetStreamAsync(downloadableFile.FileUri).ConfigureAwait(false);
                 using FileStream outputStream = File.Create(path);
 
-                await imageStream.CopyToAsync(outputStream).ConfigureAwait(false);
-                await outputStream.FlushAsync().ConfigureAwait(false);
+                var downloadTask = Task.Run(()=>
+                {
+                    imageStream.CopyTo(outputStream);
+                    outputStream.Flush();
+                });
+
+                while (!downloadTask.IsCompleted)
+                    cts.Token.ThrowIfCancellationRequested();
+
             }
             catch (Exception e)
             {

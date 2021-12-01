@@ -7,6 +7,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
     internal struct NewGroundsImageFileProvider : INewgroundsFileProvider
     {
         private HtmlDocument _doc;
+        readonly TimeSpan FILE_TIME_LIMIT = TimeSpan.FromMinutes(1.5);
 
         public NewGroundsImageFileProvider(string html)
         {
@@ -26,7 +27,8 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
             DownloadableFile downloadableFile = new()
             {
                 FileUri = uri,
-                FileName = title
+                FileName = title,
+                TimeLimit = FILE_TIME_LIMIT,
             };
             return Task.FromResult(downloadableFile);
         }

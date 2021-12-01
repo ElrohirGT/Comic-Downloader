@@ -21,6 +21,7 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
     internal class NewGroundsVideoFileProvider : INewgroundsFileProvider
     {
         private readonly NewgroundsResponse? _response;
+        readonly TimeSpan FILE_TIME_LIMIT = TimeSpan.FromMinutes(15);
 
         public NewGroundsVideoFileProvider(string apiResponse)
             => _response = JsonConvert.DeserializeObject<NewgroundsResponse>(apiResponse);
@@ -32,7 +33,8 @@ namespace Downloaders.Core.UriProviders.NewgroundsUriProviders
 
             DownloadableFile file = new()
             {
-                FileName = BaseResourceUriProvider.SanitizeFileName($"[{_response.Author}] {_response.Title}")
+                FileName = BaseResourceUriProvider.SanitizeFileName($"[{_response.Author}] {_response.Title}"),
+                TimeLimit = FILE_TIME_LIMIT,
             };
 
             (int Resolution, NewgroundsSource[] Source)? previous = null;

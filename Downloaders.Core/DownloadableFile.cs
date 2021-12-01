@@ -30,5 +30,10 @@ namespace Downloaders.Core
         /// This is the uri the user inputted.
         /// </summary>
         public Uri PageUri { get; set; }
+
+        /// <summary>
+        /// The time limit for this file to cancel the download. By default is 10 minutes.
+        /// </summary>
+        public TimeSpan TimeLimit { get; set; } = TimeSpan.FromMinutes(10);
     }
 }
