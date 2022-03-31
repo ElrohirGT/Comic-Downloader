@@ -1,5 +1,5 @@
 # Comic-Downloader
-An application that facilitates downloading comics from different websites. The supported websites are:
+An application that facilitates downloading comics (and videos) from different websites. The supported websites are:
 - <https://www.vercomicsporno.com>.
 - <https://www.vermangasporno.com>.
 - <https://www.e-hentai.org>.
