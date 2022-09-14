@@ -23,6 +23,11 @@
             Represents a file that can be downloaded from the web, and contains all the necessary information to do so.
             </summary>
         </member>
+        <member name="M:Downloaders.Core.DownloadableFile.#ctor(System.Uri,System.Uri)">
+            <summary>
+            Creates an instance of a downloadable file with only the strictly necessary information.
+            </summary>
+        </member>
         <member name="P:Downloaders.Core.DownloadableFile.FileName">
             <summary>
             The that will be given to the file once it's downloaded, this name shouldn't contain the extension.
@@ -45,6 +50,11 @@
             <summary>
             The uri of the page where the <see cref="P:Downloaders.Core.DownloadableFile.FileUri"/> was retreived
             This is the uri the user inputted.
+            </summary>
+        </member>
+        <member name="P:Downloaders.Core.DownloadableFile.TimeLimit">
+            <summary>
+            The time limit for this file to cancel the download. By default is 10 minutes.
             </summary>
         </member>
         <member name="T:Downloaders.Core.Downloader">

@@ -8,16 +8,25 @@ namespace Downloaders.Core
     public struct DownloadableFile
     {
         /// <summary>
+        /// Creates an instance of a downloadable file with only the strictly necessary information.
+        /// </summary>
+        public DownloadableFile(Uri fileUri, Uri pageUri)
+        {
+            FileUri = fileUri;
+            PageUri = pageUri;
+        }
+
+        /// <summary>
         /// The that will be given to the file once it's downloaded, this name shouldn't contain the extension.
         /// If it's null, the filename from the uri will be used instead.
         /// </summary>
-        public object? FileName { get; set; }
+        public object? FileName { get; set; } = null;
 
         /// <summary>
         /// The path where the file will be downloaded.
         /// It it's null, the user provided output path will be used.
         /// </summary>
-        public string? OutputPath { get; set; }
+        public string? OutputPath { get; set; } = null;
 
         /// <summary>
         /// The uri of the resource that will be downloaded.
