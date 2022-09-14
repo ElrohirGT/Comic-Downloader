@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\elroh\Documents\Developer\Console Apps\Comic Downloader\Comic Downloader.CMD\Comic Downloader_CMD.xml</DocumentationFile>
+    <DocumentationFile>Comic Downloader_CMD.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
